@@ -1,56 +1,7 @@
-// ==================== ИНИЦИАЛИЗАЦИЯ ТЕСТА ====================
-
-/**
- * Основная функция инициализации теста
- * Вызывается после загрузки конфигурации теста
- */
-function initTest() {
-    if (!window.TEST_CONFIG) {
-        console.error('❌ Конфигурация теста не загружена!');
-        document.getElementById('page-title').textContent = 'Ошибка: конфигурация теста не загружена';
-        document.getElementById('student-info-section').innerHTML = 
-            '<p style="color: #f44336; text-align: center;">❌ Файл теста не загружен. Проверьте код теста.</p>';
-        return;
-    }
-    
-    console.log('🚀 Инициализация теста:', window.TEST_CONFIG.title);
-    
-    // Устанавливаем заголовок теста
-    document.getElementById('page-title').textContent = window.TEST_CONFIG.title;
-    
-    // Инициализируем вопросы
-    initQuestions();
-    
-    // Настройка событий
-    setupEventListeners();
-    
-    // Запуск античит системы
-    setupAnticheatSystem();
-    
-    console.log('✅ Тест инициализирован успешно');
-}
-
-// Вызываем initTest при загрузке, если конфигурация уже доступна
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('📚 Система тестирования загружена');
-    
-    // Добавляем стили для детализации
-    addAnswerDetailStyles();
-    
-    // Проверяем, загружена ли конфигурация теста
-    if (window.TEST_CONFIG) {
-        initTest();
-    } else {
-        console.log('⏳ Ожидаем загрузку конфигурации теста...');
-        // Если конфигурация загрузится позже, она вызовет initTest самостоятельно
-    }
-    
-    // Отправляем событие о загрузке скрипта
-    const event = new Event('scriptLoaded');
-    document.dispatchEvent(event);
-});
-
-// ... остальной код script.js без изменений
+// ====================================================================
+// ОСНОВНОЙ СКРИПТ СИСТЕМЫ ТЕСТИРОВАНИЯ
+// Версия 3.0 - Модульная система
+// ====================================================================
 
 // Глобальные переменные системы
 let currentQuestionIndex = 0;
@@ -61,6 +12,7 @@ let score = 0;
 let testStarted = false;
 let testCompleted = false;
 let timer = null;
+let isInitialized = false;
 
 // DOM элементы
 const elements = {
@@ -99,10 +51,29 @@ const elements = {
  * Вызывается после загрузки конфигурации теста
  */
 function initTest() {
-    console.log('🚀 Инициализация теста:', window.TEST_CONFIG.title);
+    if (isInitialized) {
+        console.log('⚠️ Тест уже инициализирован');
+        return;
+    }
     
-    // Устанавливаем заголовок теста
-    document.querySelector('.telegram-header h1').textContent = window.TEST_CONFIG.title;
+    if (!window.TEST_CONFIG) {
+        console.error('❌ Конфигурация теста не загружена!');
+        showError('Конфигурация теста не загружена. Проверьте код теста.');
+        return;
+    }
+    
+    if (!window.questionsBank || !window.problemsBank) {
+        console.error('❌ Банки вопросов не загружены!');
+        showError('Вопросы теста не загружены.');
+        return;
+    }
+    
+    console.log('🚀 Инициализация теста:', window.TEST_CONFIG.title);
+    console.log('📊 Вопросов в банке:', window.questionsBank.length);
+    console.log('📊 Задач в банке:', window.problemsBank.length);
+    console.log('🎯 Максимальный балл:', window.TEST_CONFIG.maxScore);
+    
+    // Устанавливаем заголовок теста (уже установлен в test.html)
     
     // Инициализируем вопросы
     initQuestions();
@@ -112,6 +83,30 @@ function initTest() {
     
     // Запуск античит системы
     setupAnticheatSystem();
+    
+    isInitialized = true;
+    console.log('✅ Тест инициализирован успешно');
+}
+
+/**
+ * Показать ошибку
+ */
+function showError(message) {
+    const studentInfoSection = document.getElementById('student-info-section');
+    if (studentInfoSection) {
+        studentInfoSection.innerHTML = `
+            <div style="text-align: center; padding: 40px;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #f44336;"></i>
+                <h3 style="color: #f44336; margin: 20px 0;">Ошибка загрузки</h3>
+                <p>${message}</p>
+                <button onclick="window.location.href='../index.html'" 
+                        style="background: #4b6cb7; color: white; border: none; padding: 12px 24px; 
+                               border-radius: 8px; margin-top: 20px; cursor: pointer;">
+                    <i class="fas fa-arrow-left"></i> Вернуться на главную
+                </button>
+            </div>
+        `;
+    }
 }
 
 /**
@@ -121,13 +116,13 @@ function initQuestions() {
     // Проверяем наличие вопросов
     if (!window.questionsBank || window.questionsBank.length < window.TEST_CONFIG.totalQuestions) {
         console.error('❌ Недостаточно теоретических вопросов');
-        alert('Ошибка загрузки теста: недостаточно вопросов');
+        showError(`Недостаточно теоретических вопросов. Нужно: ${window.TEST_CONFIG.totalQuestions}, доступно: ${window.questionsBank ? window.questionsBank.length : 0}`);
         return;
     }
     
     if (!window.problemsBank || window.problemsBank.length < window.TEST_CONFIG.totalProblems) {
         console.error('❌ Недостаточно задач');
-        alert('Ошибка загрузки теста: недостаточно задач');
+        showError(`Недостаточно задач. Нужно: ${window.TEST_CONFIG.totalProblems}, доступно: ${window.problemsBank ? window.problemsBank.length : 0}`);
         return;
     }
     
@@ -152,6 +147,12 @@ function getRandomQuestions(bank, count) {
  * Настройка обработчиков событий
  */
 function setupEventListeners() {
+    // Проверяем, что элементы существуют
+    if (!elements.startBtn || !elements.confirmBtn || !elements.finishBtn) {
+        console.error('❌ Не найдены необходимые элементы DOM');
+        return;
+    }
+    
     // Кнопка начала теста
     elements.startBtn.addEventListener('click', startTest);
     
@@ -162,14 +163,18 @@ function setupEventListeners() {
     elements.finishBtn.addEventListener('click', finishTest);
     
     // Античит система
-    elements.passwordInput.addEventListener('input', validatePassword);
-    elements.continueBtn.addEventListener('click', unblockTest);
+    if (elements.passwordInput && elements.continueBtn) {
+        elements.passwordInput.addEventListener('input', validatePassword);
+        elements.continueBtn.addEventListener('click', unblockTest);
+    }
     
     // Блокировка горячих клавиш
     document.addEventListener('keydown', blockHotkeys);
     document.addEventListener('contextmenu', blockContextMenu);
     document.addEventListener('selectstart', blockSelection);
     document.addEventListener('dragstart', blockDrag);
+    
+    console.log('✅ Обработчики событий установлены');
 }
 
 /**
@@ -188,7 +193,8 @@ function startTest() {
     window.STUDENT_INFO = {
         name: name,
         class: studentClass,
-        startTime: new Date().toISOString()
+        startTime: new Date().toISOString(),
+        testName: window.TEST_CONFIG.title
     };
     
     // Скрываем форму ввода и показываем тест
@@ -205,6 +211,8 @@ function startTest() {
     
     // Запускаем античит мониторинг
     startAnticheatMonitoring();
+    
+    console.log('✅ Тест начат для ученика:', name, studentClass);
 }
 
 /**
@@ -240,6 +248,8 @@ function showQuestion() {
     
     // Создаем кнопки вариантов
     shuffledOptions.forEach((option, index) => {
+        if (index >= letters.length) return; // Защита от выхода за пределы массива букв
+        
         const optionElement = document.createElement('div');
         optionElement.className = 'option';
         optionElement.innerHTML = `
@@ -257,6 +267,8 @@ function showQuestion() {
     // Сохраняем правильный ответ для проверки
     const correctOption = question.options.find(opt => opt.v === 'correct');
     window.currentCorrectAnswer = correctOption ? correctOption.t : '';
+    
+    console.log(`📝 Показан вопрос ${currentQuestionIndex + 1} из ${totalQuestions}`);
 }
 
 /**
@@ -354,7 +366,7 @@ function showResults() {
         correctCount += answer.isCorrect ? 1 : 0;
         breakdownHTML += `
             <div class="answer-detail ${answer.isCorrect ? 'correct' : 'wrong'}">
-                <strong>Вопрос ${index + 1}:</strong> ${answer.question}<br>
+                <strong>${answer.questionType === 'question' ? 'Вопрос' : 'Задача'} ${index + 1}:</strong> ${answer.question}<br>
                 <span class="${answer.isCorrect ? 'correct-text' : 'wrong-text'}">
                     ${answer.isCorrect ? '✅ Правильно' : '❌ Неправильно'}
                     (${answer.isCorrect ? '+' + answer.points : '0'} баллов)
@@ -375,6 +387,13 @@ function showResults() {
     
     // Показываем полноэкранный результат
     showFullscreenResult(grade, score, maxScore, breakdownHTML);
+    
+    console.log('📊 Тест завершен. Результаты:', {
+        score: score,
+        grade: grade,
+        correctAnswers: correctCount,
+        totalQuestions: userAnswers.length
+    });
 }
 
 /**
@@ -498,10 +517,12 @@ function triggerAnticheat() {
     elements.anticheatModal.style.display = 'block';
     
     // Запуск таймера
-    startCountdown(window.TEST_CONFIG.anticheat.blockTime);
+    startCountdown(window.TEST_CONFIG.anticheat.blockTime || 180);
     
     // Блокируем весь контент
     document.body.style.overflow = 'hidden';
+    
+    console.log('🚨 Античит система активирована');
 }
 
 /**
@@ -534,7 +555,7 @@ function startCountdown(seconds) {
  */
 function validatePassword() {
     const password = elements.passwordInput.value;
-    const correctPassword = window.TEST_CONFIG.anticheat.password;
+    const correctPassword = window.TEST_CONFIG.anticheat.password || "3265";
     
     if (password === correctPassword) {
         elements.continueBtn.disabled = false;
@@ -563,8 +584,12 @@ function unblockTest() {
         timer = null;
     }
     
-    // Показываем предупреждение
-    alert('Тест разблокирован. При повторной попытке обмана тест будет завершен!');
+    // Снимаем обработчики античита
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
+    window.removeEventListener('blur', handleWindowBlur);
+    window.removeEventListener('focus', handleWindowFocus);
+    
+    console.log('✅ Античит система разблокирована');
 }
 
 // ==================== БЛОКИРОВКА ГОРЯЧИХ КЛАВИШ ====================
@@ -630,10 +655,18 @@ function blockDrag(e) {
 async function sendResultsToTelegram(grade, correctCount, totalCount) {
     const config = window.TEST_CONFIG.telegram;
     
-    if (!config.botToken || !config.chatId) {
+    if (!config || !config.botToken || !config.chatId) {
         console.warn('Telegram не настроен');
         elements.telegramStatus.innerHTML = 
             '<p style="color: #ff9800;">⚠️ Telegram не настроен. Сообщите учителю о результате.</p>';
+        return;
+    }
+    
+    // Проверяем, есть ли токен (не дефолтный)
+    if (config.botToken === "ВАШ_BOT_TOKEN" || config.botToken === "DEMO_TOKEN") {
+        console.warn('⚠️ Используется тестовый токен Telegram');
+        elements.telegramStatus.innerHTML = 
+            '<p style="color: #ff9800;">⚠️ Telegram настроен для тестирования. В реальном тесте будут использоваться реальные данные.</p>';
         return;
     }
     
@@ -681,8 +714,9 @@ ${grade >= 3 ? '✅ Отличная работа!' : '❌ Нужно повто
         if (data.ok) {
             elements.telegramStatus.innerHTML = 
                 '<p style="color: #4CAF50;">✅ Результаты отправлены учителю в Telegram!</p>';
+            console.log('✅ Результаты отправлены в Telegram');
         } else {
-            throw new Error(data.description);
+            throw new Error(data.description || 'Неизвестная ошибка Telegram');
         }
     } catch (error) {
         console.error('Ошибка отправки в Telegram:', error);
@@ -697,7 +731,11 @@ ${grade >= 3 ? '✅ Отличная работа!' : '❌ Нужно повто
  * Добавить стили для детализации ответов
  */
 function addAnswerDetailStyles() {
+    // Проверяем, не добавлены ли стили уже
+    if (document.getElementById('answer-detail-styles')) return;
+    
     const style = document.createElement('style');
+    style.id = 'answer-detail-styles';
     style.textContent = `
         .answer-detail {
             padding: 12px;
@@ -736,23 +774,64 @@ function addAnswerDetailStyles() {
     document.head.appendChild(style);
 }
 
-// Инициализация при загрузке страницы
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('📚 Система тестирования загружена');
+/**
+ * Функция для тестирования Telegram (для отладки)
+ */
+window.testTelegram = async function() {
+    const config = window.TEST_CONFIG.telegram;
     
-    // Добавляем стили для детализации
-    addAnswerDetailStyles();
-    
-    // Проверяем, загружена ли конфигурация теста
-    if (window.TEST_CONFIG) {
-        initTest();
-    } else {
-        console.error('Конфигурация теста не загружена!');
-        document.querySelector('.telegram-header h1').textContent = 'Ошибка загрузки теста';
-        document.getElementById('student-info-section').innerHTML = 
-            '<p style="color: #f44336; text-align: center;">❌ Файл теста не загружен. Проверьте код теста.</p>';
+    if (!config || !config.botToken || !config.chatId) {
+        alert('❌ Telegram не настроен в конфигурации теста');
+        return;
     }
-});
+    
+    const url = `https://api.telegram.org/bot${config.botToken}/sendMessage`;
+    
+    console.log('🔄 Тестируем отправку в Telegram...');
+    
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: config.chatId,
+                text: '🔧 *Тестовая отправка из системы тестирования*\n\n✅ Система работает корректно!\n📅 Время: ' + new Date().toLocaleString('ru-RU'),
+                parse_mode: 'Markdown'
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.ok) {
+            alert('✅ Тестовая отправка в Telegram прошла успешно!');
+        } else {
+            alert('❌ Ошибка Telegram: ' + (data.description || 'Неизвестная ошибка'));
+        }
+    } catch (error) {
+        alert('❌ Ошибка сети: ' + error.message);
+    }
+};
+
+// ==================== ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ ====================
+
+// Добавляем стили для детализации
+addAnswerDetailStyles();
 
 // Экспортируем функции для глобального использования
 window.initTest = initTest;
+
+console.log('📚 Основной скрипт системы тестирования загружен');
+console.log('⏳ Ожидаем загрузку конфигурации теста...');
+
+// Если конфигурация уже загружена (например, в test.html скрипт теста загрузился раньше)
+if (window.TEST_CONFIG) {
+    console.log('✅ Конфигурация теста уже загружена, инициализируем...');
+    setTimeout(() => initTest(), 100);
+}
+
+// Отправляем событие о загрузке скрипта
+document.addEventListener('DOMContentLoaded', function() {
+    const event = new Event('scriptLoaded');
+    document.dispatchEvent(event);
+    console.log('📢 Событие scriptLoaded отправлено');
+});
