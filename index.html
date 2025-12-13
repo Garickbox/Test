@@ -394,6 +394,28 @@
             bottom: 0;
         }
         
+        /* Статус радио */
+        .radio-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 12px;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .radio-status.playing {
+            background: rgba(76, 108, 183, 0.8);
+        }
+        
         @media (max-width: 480px) {
             body {
                 padding: 10px;
@@ -419,6 +441,13 @@
             .welcome-title::after {
                 display: none;
             }
+            
+            .radio-status {
+                bottom: 10px;
+                right: 10px;
+                font-size: 10px;
+                padding: 8px 12px;
+            }
         }
     </style>
 </head>
@@ -432,6 +461,12 @@
     <!-- Снежные края контейнера -->
     <div class="snow-edges"></div>
     <div class="snow-edges bottom"></div>
+    
+    <!-- Статус радио -->
+    <div class="radio-status" id="radioStatus">
+        <span id="radioIcon">🔇</span>
+        <span id="radioText">Радио загружается...</span>
+    </div>
     
     <div class="container">
         <!-- Шапка -->
@@ -471,19 +506,168 @@
                 <div class="kumir-note">
                     <strong>❄ Зимняя версия</strong><br>
                     Код для прохождения теста будет сообщен учителем на уроке.<br>
-                    Для демо-теста используйте: <strong>test</strong>
+                    Для демо-теста используйте: <strong>test</strong><br>
+                    <small style="color: #4b6cb7; font-size: 12px; margin-top: 5px; display: block;">
+                        🎵 Фоновая зимняя музыка
+                    </small>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Скрытый аудио элемент для радио -->
+    <audio id="radioPlayer" style="display: none;"></audio>
+
     <script>
+        // ============ ИНТЕРНЕТ-РАДИО ============
+        const radioPlayer = document.getElementById('radioPlayer');
+        const radioStatus = document.getElementById('radioStatus');
+        const radioIcon = document.getElementById('radioIcon');
+        const radioText = document.getElementById('radioText');
+        
+        // Список радиостанций с зимней/новогодней музыкой
+        const radioStations = [
+            {
+                name: "Зимние мелодии",
+                url: "https://stream-151.zeno.fm/1qa9rvggc5quv?zs=Pb1gbVpvTyi37iYf7qid9w", // Jazz Christmas
+                type: "audio/mpeg"
+            },
+            {
+                name: "Рождественское радио",
+                url: "https://stream-152.zeno.fm/eyywc93br5quv?zs=B8x8u9QaQ8ujZdkdt7iAXw", // Christmas Hits
+                type: "audio/mpeg"
+            },
+            {
+                name: "Зимний джаз",
+                url: "https://stream-158.zeno.fm/9ppgw63br5quv?zs=EFXQjKXUR1CBScJ16UDyqA", // Christmas Jazz
+                type: "audio/mpeg"
+            },
+            {
+                name: "Новогодние хиты",
+                url: "https://icecast.rtl.pl/christmas", // RTL Christmas
+                type: "audio/mpeg"
+            },
+            {
+                name: "Зимняя классика",
+                url: "https://streaming.radio.co/s7d7bc6853/listen", // Classical Christmas
+                type: "audio/mpeg"
+            }
+        ];
+        
+        let currentStationIndex = 0;
+        let isRadioPlaying = false;
+        let radioErrorCount = 0;
+        
+        function initRadio() {
+            updateRadioStatus("Запуск радио...", "⏳");
+            
+            // Пытаемся запустить радио сразу
+            setTimeout(() => {
+                playNextStation();
+            }, 1000);
+            
+            // Если радио не запустилось, пробуем при клике
+            document.addEventListener('click', function startRadioOnClick() {
+                if (!isRadioPlaying && radioErrorCount > 0) {
+                    playNextStation();
+                }
+            });
+            
+            // Обработчики событий радио
+            radioPlayer.addEventListener('playing', () => {
+                isRadioPlaying = true;
+                radioErrorCount = 0;
+                updateRadioStatus(`Играет: ${radioStations[currentStationIndex].name}`, "🎵");
+                radioStatus.classList.add('playing');
+            });
+            
+            radioPlayer.addEventListener('error', () => {
+                radioErrorCount++;
+                if (radioErrorCount < radioStations.length * 2) {
+                    // Пробуем следующую станцию
+                    setTimeout(() => playNextStation(), 2000);
+                } else {
+                    updateRadioStatus("Радио недоступно", "🔇");
+                    radioStatus.classList.remove('playing');
+                }
+            });
+            
+            radioPlayer.addEventListener('stalled', () => {
+                // Если поток застрял, пробуем переподключиться
+                setTimeout(() => playNextStation(), 3000);
+            });
+            
+            // Автопереключение при ошибках
+            setInterval(() => {
+                if (!isRadioPlaying && radioErrorCount < 5) {
+                    playNextStation();
+                }
+            }, 10000);
+        }
+        
+        function playNextStation() {
+            currentStationIndex = (currentStationIndex + 1) % radioStations.length;
+            const station = radioStations[currentStationIndex];
+            
+            updateRadioStatus(`Подключение: ${station.name}`, "📡");
+            
+            // Останавливаем текущее воспроизведение
+            radioPlayer.pause();
+            radioPlayer.currentTime = 0;
+            
+            // Меняем источник
+            radioPlayer.src = station.url;
+            radioPlayer.type = station.type;
+            
+            // Пытаемся запустить
+            const playPromise = radioPlayer.play();
+            
+            if (playPromise !== undefined) {
+                playPromise
+                    .then(() => {
+                        isRadioPlaying = true;
+                        radioPlayer.volume = 0.3; // Тихая громкость
+                    })
+                    .catch(error => {
+                        console.log("Ошибка воспроизведения радио:", error);
+                        isRadioPlaying = false;
+                    });
+            }
+        }
+        
+        function updateRadioStatus(text, icon) {
+            radioText.textContent = text;
+            radioIcon.textContent = icon;
+        }
+        
+        function toggleRadio() {
+            if (isRadioPlaying) {
+                radioPlayer.pause();
+                isRadioPlaying = false;
+                updateRadioStatus("Радио приостановлено", "⏸️");
+                radioStatus.classList.remove('playing');
+            } else {
+                radioPlayer.play()
+                    .then(() => {
+                        isRadioPlaying = true;
+                        updateRadioStatus(`Играет: ${radioStations[currentStationIndex].name}`, "🎵");
+                        radioStatus.classList.add('playing');
+                    })
+                    .catch(() => {
+                        playNextStation();
+                    });
+            }
+        }
+        
+        // Клик по статусу радио переключает радио
+        radioStatus.addEventListener('click', toggleRadio);
+        
         // ============ Canvas снег ============
         const canvas = document.getElementById('snowCanvas');
         const ctx = canvas.getContext('2d');
         
         let snowflakes = [];
-        const snowflakeCount = 300; // Удвоено с 150 до 300
+        const snowflakeCount = 300;
         
         class Snowflake {
             constructor() {
@@ -575,7 +759,7 @@
         // ============ Снежинки CSS ============
         function createSnowflakesCSS() {
             const snowflakesContainer = document.getElementById('snowflakes');
-            const snowflakeCount = 140; // Удвоено с 70 до 140
+            const snowflakeCount = 140;
             
             for (let i = 0; i < snowflakeCount; i++) {
                 const snowflake = document.createElement('div');
@@ -609,6 +793,9 @@
             // Инициализируем Canvas снег
             initSnow();
             animateSnow();
+            
+            // Инициализируем радио
+            initRadio();
             
             // Обработчик ресайза
             window.addEventListener('resize', initSnow);
