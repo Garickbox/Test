@@ -1,6 +1,6 @@
 // ====================================================================
 // ОСНОВНОЙ СКРИПТ СИСТЕМЫ ТЕСТИРОВАНИЯ
-// Версия 6.0 - Исправленная логика пропущенных вопросов
+// Версия 6.1 - Исправленная логика кнопки пропуска
 // ====================================================================
 
 // Глобальные переменные системы
@@ -586,15 +586,16 @@ function showQuestion(index) {
     
     // Управляем кнопками
     if (confirmBtn) confirmBtn.disabled = true;
+    
+    // ВСЕГДА РАЗРЕШАЕМ КНОПКУ ПРОПУСКА, КРОМЕ ПОСЛЕДНЕГО ВОПРОСА
     if (refreshBtn) {
-        // Нельзя пропустить последний непропущенный вопрос
-        const remainingQuestions = shuffledQuestionsAndProblems.length - index - skipQuestions.length;
-        if (remainingQuestions <= 1) {
-            refreshBtn.disabled = true;
-            refreshBtn.title = "Это последний непропущенный вопрос";
-        } else {
+        // Разрешаем пропускать всегда, кроме последнего вопроса
+        if (currentQuestionIndex < shuffledQuestionsAndProblems.length - 1) {
             refreshBtn.disabled = false;
             refreshBtn.title = "Вернуться к этому вопросу позже";
+        } else {
+            refreshBtn.disabled = true;
+            refreshBtn.title = "Это последний вопрос, пропустить нельзя";
         }
     }
     
@@ -688,10 +689,9 @@ function skipQuestion() {
         return;
     }
     
-    // Проверяем, сколько осталось непропущенных вопросов
-    const remainingQuestions = shuffledQuestionsAndProblems.length - currentQuestionIndex - skipQuestions.length - 1;
-    if (remainingQuestions <= 0) {
-        alert('Это последний непропущенный вопрос. Пропустить нельзя.');
+    // Проверяем, не последний ли это вопрос
+    if (currentQuestionIndex >= shuffledQuestionsAndProblems.length - 1) {
+        alert('Это последний вопрос. Пропустить нельзя.');
         return;
     }
     
