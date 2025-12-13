@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Тестирование - Высоковская школа 25</title>
+  <title>Загрузка теста...</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
   <div class="container">
     <div class="telegram-header">
-      <h1>Загрузка теста...</h1>
+      <h1 id="page-title">Загрузка теста...</h1>
     </div>
 
     <div class="section" id="student-info-section">
@@ -95,6 +95,9 @@
     <button class="continue-btn" id="continueBtn" disabled>Продолжить тест</button>
   </div>
 
+  <!-- Основной скрипт системы -->
+  <script src="script.js"></script>
+
   <!-- Скрипт загрузки теста -->
   <script>
     // Получаем имя теста из URL
@@ -103,7 +106,7 @@
     
     // Если тест не указан, показываем ошибку
     if (!testName) {
-      document.querySelector('.telegram-header h1').textContent = 'Ошибка: тест не указан';
+      document.getElementById('page-title').textContent = 'Ошибка: тест не указан';
       document.getElementById('student-info-section').innerHTML = `
         <div style="text-align: center; padding: 40px;">
           <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #f44336;"></i>
@@ -117,43 +120,86 @@
         </div>
       `;
     } else {
-      // Загружаем файл теста
+      console.log(`🔄 Загружаем тест: ${testName}`);
+      
+      // Создаем элемент script для загрузки теста
       const script = document.createElement('script');
       script.src = `test/${testName}.js`;
+      
       script.onload = function() {
-        console.log(`✅ Тест "${testName}" загружен успешно`);
-        // Устанавливаем заголовок
-        document.querySelector('.telegram-header h1').textContent = window.TEST_CONFIG.title;
+        console.log(`✅ Файл теста "${testName}.js" загружен успешно`);
+        
+        // Проверяем, что все необходимые переменные загружены
+        if (!window.TEST_CONFIG) {
+          showError('Файл теста не содержит конфигурации TEST_CONFIG');
+          return;
+        }
+        
+        if (!window.questionsBank || !Array.isArray(window.questionsBank)) {
+          showError('Файл теста не содержит вопросов (questionsBank)');
+          return;
+        }
+        
+        if (!window.problemsBank || !Array.isArray(window.problemsBank)) {
+          showError('Файл теста не содержит задач (problemsBank)');
+          return;
+        }
+        
+        // Устанавливаем заголовок страницы
+        document.getElementById('page-title').textContent = window.TEST_CONFIG.title;
+        document.title = window.TEST_CONFIG.title;
+        
         // Устанавливаем максимальный балл
         document.getElementById('max-score').textContent = window.TEST_CONFIG.maxScore;
         document.getElementById('fullscreen-max-score').textContent = window.TEST_CONFIG.maxScore;
-        // Инициализируем тест
+        
+        console.log('🎯 Конфигурация теста загружена:', window.TEST_CONFIG);
+        console.log('📚 Вопросов:', window.questionsBank.length);
+        console.log('🧮 Задач:', window.problemsBank.length);
+        
+        // Если основной скрипт уже загружен, инициализируем тест
         if (window.initTest) {
           window.initTest();
+        } else {
+          console.warn('⚠️ Основной скрипт еще не загружен, ожидаем...');
+          // Добавляем обработчик на случай, если script.js загрузится позже
+          document.addEventListener('scriptLoaded', function() {
+            if (window.initTest) {
+              window.initTest();
+            }
+          });
         }
       };
+      
       script.onerror = function() {
         console.error(`❌ Ошибка загрузки теста "${testName}"`);
-        document.querySelector('.telegram-header h1').textContent = 'Ошибка загрузки теста';
-        document.getElementById('student-info-section').innerHTML = `
-          <div style="text-align: center; padding: 40px;">
-            <i class="fas fa-times-circle" style="font-size: 48px; color: #f44336;"></i>
-            <h3 style="color: #f44336; margin: 20px 0;">Тест не найден</h3>
-            <p>Файл теста <strong>${testName}.js</strong> не найден в папке test/</p>
-            <p>Проверьте правильность кода теста.</p>
-            <button onclick="window.location.href='../index.html'" 
-                    style="background: #4b6cb7; color: white; border: none; padding: 12px 24px; 
-                           border-radius: 8px; margin-top: 20px; cursor: pointer;">
-              <i class="fas fa-arrow-left"></i> Вернуться на главную
-            </button>
-          </div>
-        `;
+        showError(`Файл теста <strong>${testName}.js</strong> не найден в папке test/`);
       };
+      
       document.head.appendChild(script);
     }
+    
+    // Функция показа ошибки
+    function showError(message) {
+      document.getElementById('page-title').textContent = 'Ошибка загрузки теста';
+      document.getElementById('student-info-section').innerHTML = `
+        <div style="text-align: center; padding: 40px;">
+          <i class="fas fa-times-circle" style="font-size: 48px; color: #f44336;"></i>
+          <h3 style="color: #f44336; margin: 20px 0;">Ошибка загрузки теста</h3>
+          <p>${message}</p>
+          <button onclick="window.location.href='../index.html'" 
+                  style="background: #4b6cb7; color: white; border: none; padding: 12px 24px; 
+                         border-radius: 8px; margin-top: 20px; cursor: pointer;">
+            <i class="fas fa-arrow-left"></i> Вернуться на главную
+          </button>
+        </div>
+      `;
+    }
+    
+    // Инициализируем тест после загрузки основного скрипта
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('📚 Система тестирования загружена, ожидаем тест...');
+    });
   </script>
-
-  <!-- Основной скрипт -->
-  <script src="script.js"></script>
 </body>
 </html>
