@@ -71,7 +71,6 @@ const cheatMessages = [
 
 // DOM элементы
 let progressBar, progressText, questionText, questionType, optionsContainer, confirmBtn;
-let resultsDiv, scoreValue, gradeValue, pointsBreakdown, telegramStatus;
 let studentNameInput, studentClassSelect, fullscreenResult, fullscreenGrade;
 let fullscreenScore, fullscreenBreakdown, finishBtn, startTestBtn;
 let studentInfoSection, testContent, blockerOverlay, anticheatModal;
@@ -125,11 +124,6 @@ function cacheDOMElements() {
     questionType = document.getElementById('question-type');
     optionsContainer = document.getElementById('options-container');
     confirmBtn = document.getElementById('confirm-btn');
-    resultsDiv = document.getElementById('results');
-    scoreValue = document.getElementById('score-value');
-    gradeValue = document.getElementById('grade-value');
-    pointsBreakdown = document.getElementById('points-breakdown');
-    telegramStatus = document.getElementById('telegram-status');
     studentNameInput = document.getElementById('student-name');
     studentClassSelect = document.getElementById('student-class');
     fullscreenResult = document.getElementById('fullscreen-result');
@@ -206,7 +200,7 @@ function setupEventListeners() {
     
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && fullscreenResult && fullscreenResult.style.display === 'flex') {
-            finishFullScreen();
+            // Теперь не закрываем по Escape, так как есть таймер
         }
     });
     
@@ -335,7 +329,6 @@ function initQuestions() {
     antiCheatTriggered = false;
     
     if (confirmBtn) confirmBtn.disabled = false;
-    if (resultsDiv) resultsDiv.style.display = 'none';
     if (fullscreenResult) fullscreenResult.style.display = 'none';
     
     console.log(`✅ Выбрано ${selectedQuestions.length} вопросов и ${selectedProblems.length} задач`);
@@ -487,26 +480,12 @@ function showResults() {
         }
     }
     
+    // Сохраняем для использования в других функциях
+    window.TEST_CONFIG.correctQuestions = correctQuestions;
+    window.TEST_CONFIG.correctProblems = correctProblems;
+    
     const grade = calculateGrade(totalScore);
     const maxScore = window.TEST_CONFIG.maxScore;
-    
-    if (scoreValue) scoreValue.textContent = totalScore;
-    if (gradeValue) {
-        gradeValue.textContent = grade;
-        gradeValue.style.color = getGradeColor(grade);
-    }
-    
-    if (pointsBreakdown) {
-        pointsBreakdown.innerHTML = `
-            <div>Правильных вопросов: ${correctQuestions} из ${window.TEST_CONFIG.totalQuestions} (${questionScore} баллов)</div>
-            <div>Правильных задач: ${correctProblems} из ${window.TEST_CONFIG.totalProblems} (${problemScore} баллов)</div>
-            <div>Всего баллов: ${totalScore} из ${maxScore}</div>
-        `;
-    }
-    
-    if (resultsDiv) resultsDiv.style.display = 'block';
-    
-    sendResultsToTelegram(grade, correctQuestions, correctProblems, questionScore, problemScore);
     
     showFullscreenResult(grade, totalScore, maxScore, correctQuestions, correctProblems, questionScore, problemScore);
     
@@ -541,36 +520,97 @@ function showFullscreenResult(grade, score, maxScore, correctQuestions, correctP
     if (!fullscreenResult || !fullscreenGrade || !fullscreenScore || !fullscreenBreakdown) return;
     
     fullscreenResult.style.display = 'flex';
+    
+    // Убедимся, что показывается правильный экран (с оценкой)
+    document.getElementById('grade-screen').style.display = 'block';
+    document.getElementById('accepted-screen').style.display = 'none';
+    
     fullscreenGrade.textContent = grade;
     fullscreenGrade.style.color = getGradeColor(grade);
     fullscreenScore.textContent = `${score} из ${maxScore}`;
+    
+    // Обновляем также элемент с максимальным баллом
+    const fullscreenMaxScore = document.getElementById('fullscreen-max-score');
+    if (fullscreenMaxScore) {
+        fullscreenMaxScore.textContent = maxScore;
+    }
+    
     fullscreenBreakdown.innerHTML = `
-        <div>Правильных вопросов: ${correctQuestions} (${questionScore} баллов)</div>
-        <div>Правильных задач: ${correctProblems} (${problemScore} баллов)</div>
+        <div>Правильных вопросов: ${correctQuestions} из ${window.TEST_CONFIG.totalQuestions} (${questionScore} баллов)</div>
+        <div>Правильных задач: ${correctProblems} из ${window.TEST_CONFIG.totalProblems} (${problemScore} баллов)</div>
+        <div>Всего баллов: ${score} из ${maxScore}</div>
     `;
 }
 
+/**
+ * Завершить полноэкранный режим (новая логика)
+ */
 function finishFullScreen() {
-    if (!fullscreenResult || !resultsDiv) return;
+    if (!fullscreenResult || !fullscreenGrade || !fullscreenScore || !fullscreenBreakdown) return;
     
-    fullscreenResult.style.display = 'none';
-    resultsDiv.style.display = 'block';
+    // Получаем данные для передачи на следующий экран
+    const grade = fullscreenGrade.textContent;
+    const scoreText = fullscreenScore.textContent;
+    const breakdownHTML = fullscreenBreakdown.innerHTML;
     
-    // Показываем сообщение о Telegram
-    if (telegramStatus) {
-        telegramStatus.innerHTML = '<p style="color: #4CAF50;">✅ Результаты отправлены учителю в Telegram!</p>';
-        telegramStatus.style.display = 'block';
-        telegramStatus.className = 'success';
+    // Извлекаем баллы из текста (например: "15 из 20")
+    const scoreMatch = scoreText.match(/(\d+)\s*из\s*(\d+)/);
+    let score = 0;
+    let maxScore = window.TEST_CONFIG.maxScore;
+    
+    if (scoreMatch) {
+        score = scoreMatch[1];
+        maxScore = scoreMatch[2];
     }
     
-    setTimeout(() => {
-        if (telegramStatus) telegramStatus.style.display = 'none';
+    // Формируем детализацию для экрана "Работа принята"
+    const breakdown = `
+        <div style="margin-bottom: 8px;">Правильных вопросов: ${window.TEST_CONFIG.correctQuestions || 0} из ${window.TEST_CONFIG.totalQuestions}</div>
+        <div style="margin-bottom: 8px;">Правильных задач: ${window.TEST_CONFIG.correctProblems || 0} из ${window.TEST_CONFIG.totalProblems}</div>
+        <div>Всего баллов: ${score} из ${maxScore}</div>
+    `;
+    
+    // Отправляем результаты в Telegram
+    sendResultsToTelegram(
+        parseInt(grade),
+        window.TEST_CONFIG.correctQuestions || 0,
+        window.TEST_CONFIG.correctProblems || 0,
+        window.TEST_CONFIG.correctQuestions || 0,
+        (window.TEST_CONFIG.correctProblems || 0) * 3
+    );
+    
+    // Переключаем на экран "Работа принята"
+    if (window.showWorkAcceptedScreen) {
+        window.showWorkAcceptedScreen(grade, score, maxScore, breakdown);
+    } else {
+        // Резервный вариант, если функция не загрузилась
+        console.warn('Функция showWorkAcceptedScreen не найдена, используем резервный метод');
         
-        // Возвращаем на главную страницу через 3 секунды
-        setTimeout(() => {
-            window.location.href = "index.html";
-        }, 3000);
-    }, 5000);
+        // Переключаем экраны
+        document.getElementById('grade-screen').style.display = 'none';
+        document.getElementById('accepted-screen').style.display = 'block';
+        
+        // Заполняем данные
+        document.getElementById('accepted-grade').textContent = grade;
+        document.getElementById('accepted-score').textContent = score;
+        document.getElementById('accepted-max-score').textContent = maxScore;
+        document.getElementById('accepted-breakdown').innerHTML = breakdown;
+        
+        // Запускаем таймер обратного отсчета
+        let seconds = 8;
+        const timerMessage = document.getElementById('timer-message');
+        const timerInterval = setInterval(() => {
+            seconds--;
+            if (timerMessage) {
+                timerMessage.textContent = `Через ${seconds} секунд вы будете перенаправлены на главную страницу...`;
+            }
+            
+            if (seconds <= 0) {
+                clearInterval(timerInterval);
+                window.location.href = "index.html";
+            }
+        }, 1000);
+    }
 }
 
 // ==================== АНТИЧИТ СИСТЕМА ====================
@@ -685,21 +725,11 @@ async function sendResultsToTelegram(grade, correctQuestions, correctProblems, q
     
     if (!config || !config.botToken || !config.chatId) {
         console.warn('Telegram не настроен');
-        if (telegramStatus) {
-            telegramStatus.innerHTML = 
-                '<p style="color: #ff9800;">⚠️ Telegram не настроен. Сообщите учителю о результате.</p>';
-            telegramStatus.style.display = 'block';
-        }
         return;
     }
     
     if (config.botToken === "ВАШ_BOT_TOKEN" || config.botToken === "DEMO_TOKEN") {
         console.warn('⚠️ Используется тестовый токен Telegram');
-        if (telegramStatus) {
-            telegramStatus.innerHTML = 
-                '<p style="color: #ff9800;">⚠️ Telegram настроен для тестирования. В реальном тесте будут использоваться реальные данные.</p>';
-            telegramStatus.style.display = 'block';
-        }
         return;
     }
     
@@ -776,11 +806,6 @@ async function sendResultsToTelegram(grade, correctQuestions, correctProblems, q
         }
     } catch (error) {
         console.error('Ошибка отправки в Telegram:', error);
-        if (telegramStatus) {
-            telegramStatus.innerHTML = 
-                `<p style="color: #f44336;">❌ Ошибка отправки: ${error.message}</p>`;
-            telegramStatus.style.display = 'block';
-        }
     }
     
     isSubmitted = true;
