@@ -15,11 +15,11 @@ let testStarted = false;
 let testCompleted = false;
 
 // Переменные для отслеживания использования пасхалок
-let clipboardAttempts = 0;      // Количество попыток копирования
-let tabSwitchAttempts = 0;      // Количество переключений вкладок
-let cheatBlockTimeouts = 0;     // Количество срабатываний античит системы
-let clipboardBlocked = false;   // Была ли блокировка копирования
-let antiCheatTriggered = false; // Срабатывала ли античит система
+let clipboardAttempts = 0;
+let tabSwitchAttempts = 0;
+let cheatBlockTimeouts = 0;
+let clipboardBlocked = false;
+let antiCheatTriggered = false;
 
 // ПАСХАЛКА 1: Антикопирование
 const clipboardMessages = [
@@ -71,7 +71,7 @@ const cheatMessages = [
 
 // DOM элементы
 let progressBar, progressText, questionText, questionType, optionsContainer, confirmBtn;
-let resetBtn, resultsDiv, scoreValue, gradeValue, pointsBreakdown, telegramStatus;
+let resultsDiv, scoreValue, gradeValue, pointsBreakdown, telegramStatus;
 let studentNameInput, studentClassSelect, fullscreenResult, fullscreenGrade;
 let fullscreenScore, fullscreenBreakdown, finishBtn, startTestBtn;
 let studentInfoSection, testContent, blockerOverlay, anticheatModal;
@@ -85,14 +85,9 @@ let cheatAttempts = 0;
 
 // ==================== ИНИЦИАЛИЗАЦИЯ ТЕСТА ====================
 
-/**
- * Основная функция инициализации теста
- * Вызывается после загрузки конфигурации теста
- */
 function initTest() {
     console.log('🚀 Инициализация теста:', window.TEST_CONFIG.title);
     
-    // Проверка конфигурации
     if (!window.TEST_CONFIG) {
         console.error('❌ Конфигурация теста не загружена!');
         showError('Конфигурация теста не загружена. Проверьте код теста.');
@@ -105,32 +100,24 @@ function initTest() {
         return;
     }
     
-    // Кэширование DOM элементов
     cacheDOMElements();
     
     console.log('📊 Вопросов в банке:', window.questionsBank.length);
     console.log('📊 Задач в банке:', window.problemsBank.length);
     console.log('🎯 Максимальный балл:', window.TEST_CONFIG.maxScore);
     
-    // Устанавливаем заголовок теста
     document.title = window.TEST_CONFIG.title;
     const pageTitle = document.getElementById('page-title');
     if (pageTitle) {
         pageTitle.textContent = window.TEST_CONFIG.title;
     }
     
-    // Настройка событий
     setupEventListeners();
-    
-    // Настройка антикопирования
     setupAnticopySystem();
     
     console.log('✅ Тест инициализирован успешно');
 }
 
-/**
- * Кэширование DOM элементов
- */
 function cacheDOMElements() {
     progressBar = document.getElementById('progress-bar');
     progressText = document.getElementById('progress-text');
@@ -138,7 +125,6 @@ function cacheDOMElements() {
     questionType = document.getElementById('question-type');
     optionsContainer = document.getElementById('options-container');
     confirmBtn = document.getElementById('confirm-btn');
-    resetBtn = document.getElementById('reset-btn');
     resultsDiv = document.getElementById('results');
     scoreValue = document.getElementById('score-value');
     gradeValue = document.getElementById('grade-value');
@@ -162,9 +148,6 @@ function cacheDOMElements() {
     continueBtn = document.getElementById('continueBtn');
 }
 
-/**
- * Показать ошибку
- */
 function showError(message) {
     const studentInfoSection = document.getElementById('student-info-section');
     if (studentInfoSection) {
@@ -185,31 +168,19 @@ function showError(message) {
 
 // ==================== НАСТРОЙКА СИСТЕМЫ ====================
 
-/**
- * Настройка обработчиков событий
- */
 function setupEventListeners() {
-    // Кнопка начала теста
     if (startTestBtn) {
         startTestBtn.addEventListener('click', startTest);
     }
     
-    // Кнопка подтверждения ответа
     if (confirmBtn) {
         confirmBtn.addEventListener('click', confirmAnswer);
     }
     
-    // Кнопка сброса теста
-    if (resetBtn) {
-        resetBtn.addEventListener('click', resetAll);
-    }
-    
-    // Кнопка завершения полноэкранного режима
     if (finishBtn) {
         finishBtn.addEventListener('click', finishFullScreen);
     }
     
-    // Кнопка продолжения в античит системе
     if (continueBtn) {
         continueBtn.addEventListener('click', function() {
             if (!this.disabled) {
@@ -218,7 +189,6 @@ function setupEventListeners() {
         });
     }
     
-    // Ввод пароля в античит системе
     if (passwordInput) {
         passwordInput.addEventListener('input', function(e) {
             this.value = this.value.replace(/\D/g, '');
@@ -234,7 +204,6 @@ function setupEventListeners() {
         });
     }
     
-    // Обработка Escape для закрытия полноэкранного режима
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && fullscreenResult && fullscreenResult.style.display === 'flex') {
             finishFullScreen();
@@ -244,9 +213,6 @@ function setupEventListeners() {
     console.log('✅ Обработчики событий установлены');
 }
 
-/**
- * Настройка антикопирования
- */
 function setupAnticopySystem() {
     function isInsideInput(element) {
         if (!element) return false;
@@ -263,7 +229,6 @@ function setupAnticopySystem() {
         return false;
     }
 
-    // Блокировка копирования
     document.addEventListener('copy', function(e) {
         const selection = window.getSelection();
         const selectedText = selection.toString();
@@ -275,7 +240,6 @@ function setupAnticopySystem() {
             e.clipboardData.setData('text/plain', randomMessage);
             e.preventDefault();
             
-            // Фиксируем попытку копирования
             clipboardAttempts++;
             clipboardBlocked = true;
             
@@ -283,30 +247,22 @@ function setupAnticopySystem() {
         }
     });
 
-    // Блокировка Ctrl+A
     document.addEventListener('keydown', function(e) {
         if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
             if (!isInsideInput(document.activeElement)) {
                 e.preventDefault();
-                
-                // Фиксируем попытку выделения всего текста
                 clipboardAttempts++;
                 clipboardBlocked = true;
-                
                 console.log(`Попытка выделения всего текста заблокирована (${clipboardAttempts} раз)`);
             }
         }
     });
 
-    // Блокировка перетаскивания текста
     document.addEventListener('dragstart', function(e) {
         if (!isInsideInput(e.target)) {
             e.preventDefault();
-            
-            // Фиксируем попытку перетаскивания
             clipboardAttempts++;
             clipboardBlocked = true;
-            
             console.log(`Попытка перетаскивания текста заблокирована (${clipboardAttempts} раз)`);
         }
     });
@@ -314,9 +270,6 @@ function setupAnticopySystem() {
 
 // ==================== ОСНОВНАЯ ЛОГИКА ТЕСТИРОВАНИЯ ====================
 
-/**
- * Начать тест
- */
 function startTest() {
     const name = studentNameInput.value.trim();
     const studentClass = studentClassSelect.value;
@@ -326,7 +279,6 @@ function startTest() {
         return;
     }
     
-    // Сохраняем данные ученика
     window.STUDENT_INFO = {
         name: name,
         class: studentClass,
@@ -334,30 +286,22 @@ function startTest() {
         testName: window.TEST_CONFIG.title
     };
     
-    // Скрываем форму ввода и показываем тест
     studentInfoSection.style.display = 'none';
     testContent.style.display = 'block';
     
     testStarted = true;
     
-    // Начинаем мониторинг античит системы
     startAnticheatMonitoring();
     
-    // Инициализируем вопросы
     initQuestions();
     
-    // Показываем первый вопрос
     showQuestion(0);
     
     console.log('✅ Тест начат для ученика:', name, studentClass);
     console.log('🚀 Античит мониторинг активирован');
 }
 
-/**
- * Инициализация вопросов и задач
- */
 function initQuestions() {
-    // Проверяем наличие вопросов
     if (!window.questionsBank || window.questionsBank.length < window.TEST_CONFIG.totalQuestions) {
         console.error('❌ Недостаточно теоретических вопросов');
         showError(`Недостаточно теоретических вопросов. Нужно: ${window.TEST_CONFIG.totalQuestions}, доступно: ${window.questionsBank ? window.questionsBank.length : 0}`);
@@ -370,14 +314,11 @@ function initQuestions() {
         return;
     }
     
-    // Выбираем случайные вопросы из банка
     const selectedQuestions = shuffleArray([...window.questionsBank]).slice(0, window.TEST_CONFIG.totalQuestions);
     const selectedProblems = shuffleArray([...window.problemsBank]).slice(0, window.TEST_CONFIG.totalProblems);
     
-    // Объединяем вопросы и задачи
     shuffledQuestionsAndProblems = [...selectedQuestions, ...selectedProblems];
     
-    // Перемешиваем порядок
     shuffledQuestionsAndProblems = shuffleArray(shuffledQuestionsAndProblems);
     
     currentQuestionIndex = 0;
@@ -387,7 +328,6 @@ function initQuestions() {
     isShowingAnswer = false;
     currentShuffledOptions = [];
     
-    // Сбрасываем статистику пасхалок
     clipboardAttempts = 0;
     tabSwitchAttempts = 0;
     cheatBlockTimeouts = 0;
@@ -401,9 +341,6 @@ function initQuestions() {
     console.log(`✅ Выбрано ${selectedQuestions.length} вопросов и ${selectedProblems.length} задач`);
 }
 
-/**
- * Перемешивание массива (алгоритм Фишера-Йейтса)
- */
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -412,9 +349,6 @@ function shuffleArray(array) {
     return array;
 }
 
-/**
- * Показать вопрос/задачу
- */
 function showQuestion(index) {
     if (!shuffledQuestionsAndProblems || index >= shuffledQuestionsAndProblems.length) {
         console.error('Нет вопросов для отображения');
@@ -425,7 +359,6 @@ function showQuestion(index) {
     
     if (questionText) questionText.textContent = item.text;
     
-    // Устанавливаем тип задания
     if (item.points === 3) {
         if (questionType) {
             questionType.textContent = "Задача (3 балла)";
@@ -438,7 +371,6 @@ function showQuestion(index) {
         }
     }
     
-    // Перемешиваем варианты ответов для текущего вопроса
     currentShuffledOptions = shuffleArray([...item.options]);
     
     if (optionsContainer) {
@@ -475,9 +407,6 @@ function showQuestion(index) {
     updateProgress();
 }
 
-/**
- * Подсветка правильного ответа
- */
 function highlightCorrectAnswer() {
     const options = optionsContainer.querySelectorAll('.option-label');
     
@@ -493,9 +422,6 @@ function highlightCorrectAnswer() {
     });
 }
 
-/**
- * Обновление прогресса
- */
 function updateProgress() {
     if (!progressBar || !progressText) return;
     
@@ -505,9 +431,6 @@ function updateProgress() {
     progressText.textContent = `Задание ${currentQuestionIndex + 1} из ${totalQuestions}`;
 }
 
-/**
- * Подтверждение ответа
- */
 function confirmAnswer() {
     const selectedOption = document.querySelector('input[name="option"]:checked');
     if (!selectedOption) {
@@ -537,19 +460,13 @@ function confirmAnswer() {
 
 // ==================== РЕЗУЛЬТАТЫ И ОЦЕНКИ ====================
 
-/**
- * Показать результаты
- */
 function showResults() {
     testCompleted = true;
     
-    // Останавливаем мониторинг античит системы
     stopAnticheatMonitoring();
     
-    // Скрываем контейнер с вопросами
     if (testContent) testContent.style.display = 'none';
     
-    // Подсчет результатов
     totalScore = 0;
     let questionScore = 0;
     let problemScore = 0;
@@ -570,18 +487,15 @@ function showResults() {
         }
     }
     
-    // Рассчитываем оценку
     const grade = calculateGrade(totalScore);
     const maxScore = window.TEST_CONFIG.maxScore;
     
-    // Обновляем результаты
     if (scoreValue) scoreValue.textContent = totalScore;
     if (gradeValue) {
         gradeValue.textContent = grade;
         gradeValue.style.color = getGradeColor(grade);
     }
     
-    // Формируем детализацию
     if (pointsBreakdown) {
         pointsBreakdown.innerHTML = `
             <div>Правильных вопросов: ${correctQuestions} из ${window.TEST_CONFIG.totalQuestions} (${questionScore} баллов)</div>
@@ -590,13 +504,10 @@ function showResults() {
         `;
     }
     
-    // Показываем результаты
     if (resultsDiv) resultsDiv.style.display = 'block';
     
-    // Отправляем результаты в Telegram
     sendResultsToTelegram(grade, correctQuestions, correctProblems, questionScore, problemScore);
     
-    // Показываем полноэкранный результат
     showFullscreenResult(grade, totalScore, maxScore, correctQuestions, correctProblems, questionScore, problemScore);
     
     console.log('📊 Тест завершен. Результаты:', {
@@ -607,9 +518,6 @@ function showResults() {
     });
 }
 
-/**
- * Рассчитать оценку по баллам
- */
 function calculateGrade(score) {
     const scale = window.TEST_CONFIG.gradingScale;
     
@@ -619,9 +527,6 @@ function calculateGrade(score) {
     return 2;
 }
 
-/**
- * Получить цвет для оценки
- */
 function getGradeColor(grade) {
     const colors = {
         5: '#4CAF50',
@@ -632,9 +537,6 @@ function getGradeColor(grade) {
     return colors[grade] || '#333';
 }
 
-/**
- * Показать полноэкранный результат
- */
 function showFullscreenResult(grade, score, maxScore, correctQuestions, correctProblems, questionScore, problemScore) {
     if (!fullscreenResult || !fullscreenGrade || !fullscreenScore || !fullscreenBreakdown) return;
     
@@ -648,85 +550,46 @@ function showFullscreenResult(grade, score, maxScore, correctQuestions, correctP
     `;
 }
 
-/**
- * Завершить полноэкранный режим
- */
 function finishFullScreen() {
     if (!fullscreenResult || !resultsDiv || !telegramStatus) return;
     
     fullscreenResult.style.display = 'none';
     resultsDiv.style.display = 'block';
     
-    telegramStatus.textContent = 'Результаты отправлены учителю!';
-    telegramStatus.className = 'success';
-    telegramStatus.style.display = 'block';
+    // УБЕДИТЕСЬ, что этот элемент ЕСТЬ в test.html!
+    if (telegramStatus) {
+        telegramStatus.innerHTML = '<p style="color: #4CAF50;">✅ Результаты отправлены учителю в Telegram!</p>';
+        telegramStatus.style.display = 'block';
+        telegramStatus.className = 'success';
+    }
     
     setTimeout(() => {
-        telegramStatus.style.display = 'none';
-        // Возвращаем на главную страницу через 5 секунд
+        if (telegramStatus) telegramStatus.style.display = 'none';
+        
         setTimeout(() => {
             window.location.href = "index.html";
         }, 2000);
     }, 5000);
 }
 
-/**
- * Сброс контрольной работы
- */
-function resetAll() {
-    if (!confirm('Сбросить всю контрольную работу? Весь прогресс будет потерян.')) return;
-    
-    if (studentInfoSection) studentInfoSection.style.display = 'block';
-    if (testContent) testContent.style.display = 'none';
-    
-    if (studentNameInput) studentNameInput.value = '';
-    if (studentClassSelect) studentClassSelect.value = '';
-    
-    // Закрыть античит окно, если открыто
-    closeAntiCheat();
-    
-    // Останавливаем мониторинг античит
-    stopAnticheatMonitoring();
-    
-    // Сброс статистики пасхалок
-    clipboardAttempts = 0;
-    tabSwitchAttempts = 0;
-    cheatBlockTimeouts = 0;
-    clipboardBlocked = false;
-    antiCheatTriggered = false;
-    testStarted = false;
-    testCompleted = false;
-}
-
 // ==================== АНТИЧИТ СИСТЕМА ====================
 
-/**
- * Начать мониторинг античит системы
- */
 function startAnticheatMonitoring() {
     console.log('🔍 Запуск мониторинга античит системы');
     
-    // Мониторинг потери фокуса
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('blur', handleWindowBlur);
     window.addEventListener('focus', handleWindowFocus);
 }
 
-/**
- * Остановить мониторинг античит системы
- */
 function stopAnticheatMonitoring() {
     console.log('🛑 Остановка мониторинга античит системы');
     
-    // Удаляем обработчики событий
     document.removeEventListener('visibilitychange', handleVisibilityChange);
     window.removeEventListener('blur', handleWindowBlur);
     window.removeEventListener('focus', handleWindowFocus);
 }
 
-/**
- * Обработка изменения видимости страницы
- */
 function handleVisibilityChange() {
     if (document.hidden && testStarted && !testCompleted) {
         console.log('👀 Страница скрыта - срабатывает античит');
@@ -734,9 +597,6 @@ function handleVisibilityChange() {
     }
 }
 
-/**
- * Обработка потери фокуса окна
- */
 function handleWindowBlur() {
     if (testStarted && !testCompleted) {
         console.log('💨 Окно потеряло фокус - срабатывает античит');
@@ -744,26 +604,16 @@ function handleWindowBlur() {
     }
 }
 
-/**
- * Обработка получения фокуса окна
- */
 function handleWindowFocus() {
-    // Можно добавить логику при возвращении на страницу
     console.log('🎯 Окно получило фокус');
 }
 
-/**
- * Форматирование времени
- */
 function formatTime(seconds) {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
-/**
- * Запустить античит блокировку
- */
 function triggerAnticheat() {
     if (!testStarted || testCompleted) {
         console.log('⚠️ Античит не сработал: тест не начат или завершен');
@@ -786,7 +636,6 @@ function triggerAnticheat() {
     if (blockerOverlay) blockerOverlay.style.display = 'block';
     if (anticheatModal) anticheatModal.style.display = 'block';
     
-    // Вибрация (если поддерживается)
     if (navigator.vibrate) {
         navigator.vibrate([200, 100, 200]);
     }
@@ -796,9 +645,6 @@ function triggerAnticheat() {
     console.log(`🚨 Античит сработал! Попыток переключения вкладок: ${tabSwitchAttempts}`);
 }
 
-/**
- * Запустить обратный отсчет
- */
 function startBlockTimer() {
     clearInterval(blockTimer);
     
@@ -819,9 +665,6 @@ function startBlockTimer() {
     }, 1000);
 }
 
-/**
- * Разблокировать тест
- */
 function closeAntiCheat() {
     clearInterval(blockTimer);
     
@@ -834,9 +677,6 @@ function closeAntiCheat() {
 
 // ==================== TELEGRAM ИНТЕГРАЦИЯ ====================
 
-/**
- * Отправить результаты в Telegram
- */
 async function sendResultsToTelegram(grade, correctQuestions, correctProblems, questionScore, problemScore) {
     if (isSubmitted) return;
     
@@ -852,7 +692,6 @@ async function sendResultsToTelegram(grade, correctQuestions, correctProblems, q
         return;
     }
     
-    // Проверяем, есть ли токен (не дефолтный)
     if (config.botToken === "ВАШ_BOT_TOKEN" || config.botToken === "DEMO_TOKEN") {
         console.warn('⚠️ Используется тестовый токен Telegram');
         if (telegramStatus) {
@@ -867,7 +706,6 @@ async function sendResultsToTelegram(grade, correctQuestions, correctProblems, q
     const testName = window.TEST_CONFIG.title;
     const maxScore = window.TEST_CONFIG.maxScore;
     
-    // Подготавливаем статистику пасхалок
     const easterEggsStats = [];
     
     if (clipboardBlocked) {
@@ -885,7 +723,6 @@ async function sendResultsToTelegram(grade, correctQuestions, correctProblems, q
         easterEggsStats.push(`🚨 Античит система: Не срабатывала ✅`);
     }
     
-    // Создаем сообщение с учетом пасхалок
     let msg = `⚡ Результаты контрольной работы "${testName}":
 
 👤 Студент: ${student.name}
@@ -899,7 +736,6 @@ async function sendResultsToTelegram(grade, correctQuestions, correctProblems, q
 
 `;
 
-    // Добавляем статистику пасхалок только если они срабатывали
     if (clipboardBlocked || antiCheatTriggered) {
         msg += `
 🚨 **Статистика антижульничания:**
@@ -915,7 +751,6 @@ async function sendResultsToTelegram(grade, correctQuestions, correctProblems, q
 📅 Дата: ${new Date().toLocaleString('ru-RU')}`;
     
     try {
-        // Отправляем запрос к Telegram Bot API
         const response = await fetch(
             `https://api.telegram.org/bot${config.botToken}/sendMessage`,
             {
@@ -935,11 +770,7 @@ async function sendResultsToTelegram(grade, correctQuestions, correctProblems, q
         
         if (data.ok) {
             console.log('✅ Результаты отправлены в Telegram');
-            if (telegramStatus) {
-                telegramStatus.innerHTML = 
-                    '<p style="color: #4CAF50;">✅ Результаты отправлены учителю в Telegram!</p>';
-                telegramStatus.style.display = 'block';
-            }
+            // Сообщение уже показывается в finishFullScreen()
         } else {
             throw new Error(data.description || 'Неизвестная ошибка Telegram');
         }
@@ -955,9 +786,6 @@ async function sendResultsToTelegram(grade, correctQuestions, correctProblems, q
     isSubmitted = true;
 }
 
-/**
- * Функция для тестирования Telegram
- */
 window.testTelegram = async function() {
     const config = window.TEST_CONFIG.telegram;
     
@@ -995,19 +823,16 @@ window.testTelegram = async function() {
 
 // ==================== ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ ====================
 
-// Экспортируем функции для глобального использования
 window.initTest = initTest;
 
 console.log('📚 Основной скрипт системы тестирования загружен (версия с пасхалками)');
 console.log('⏳ Ожидаем загрузку конфигурации теста...');
 
-// Если конфигурация уже загружена (например, в test.html скрипт теста загрузился раньше)
 if (window.TEST_CONFIG) {
     console.log('✅ Конфигурация теста уже загружена, инициализируем...');
     setTimeout(() => initTest(), 100);
 }
 
-// Отправляем событие о загрузке скрипта
 document.addEventListener('DOMContentLoaded', function() {
     const event = new Event('scriptLoaded');
     document.dispatchEvent(event);
