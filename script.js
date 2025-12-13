@@ -1,6 +1,6 @@
 // ====================================================================
 // ОСНОВНОЙ СКРИПТ СИСТЕМЫ ТЕСТИРОВАНИЯ
-// Версия 6.1 - Исправленная логика кнопки пропуска
+// Версия 6.2 - Исправленная логика пропущенных вопросов
 // ====================================================================
 
 // Глобальные переменные системы
@@ -529,7 +529,8 @@ function showQuestion(index) {
         }
     }
     
-    // Если вопрос пропущенный, сбрасываем его состояние
+    // ВАЖНО: при показе вопроса мы должны учитывать, пропущен он или нет
+    // Если вопрос пропущен - сбрасываем ответ и показываем чистый вопрос
     const isSkippedQuestion = skipQuestions.includes(index);
     
     currentShuffledOptions = shuffleArray([...item.options]);
@@ -537,8 +538,7 @@ function showQuestion(index) {
     if (optionsContainer) {
         optionsContainer.innerHTML = '';
         
-        // Если это пропущенный вопрос и у нас уже есть ответ на него,
-        // мы должны сбросить выбор пользователя, чтобы он мог выбрать заново
+        // Если вопрос пропущен - сбрасываем ответ
         if (isSkippedQuestion) {
             userAnswers[index] = null;
         }
@@ -547,7 +547,7 @@ function showQuestion(index) {
             const label = document.createElement('label');
             label.className = 'option-label';
             
-            // Показываем выбранный вариант только если вопрос не пропущен
+            // Показываем выбранный вариант только если вопрос не пропущен и у нас есть ответ
             if (!isSkippedQuestion && userAnswers[index] === option.v) {
                 label.classList.add('selected');
             }
@@ -563,18 +563,9 @@ function showQuestion(index) {
             
             if (!isShowingAnswer) {
                 label.addEventListener('click', () => {
-                    // Если это пропущенный вопрос, не снимаем выделение с других
-                    // пока пользователь не выбрал ответ
-                    if (isSkippedQuestion) {
-                        // Просто выбираем этот вариант
-                        document.querySelectorAll('.option-label').forEach(l => l.classList.remove('selected'));
-                        label.classList.add('selected');
-                        radio.checked = true;
-                    } else {
-                        document.querySelectorAll('.option-label').forEach(l => l.classList.remove('selected'));
-                        label.classList.add('selected');
-                        radio.checked = true;
-                    }
+                    document.querySelectorAll('.option-label').forEach(l => l.classList.remove('selected'));
+                    label.classList.add('selected');
+                    radio.checked = true;
                     
                     if (confirmBtn) confirmBtn.disabled = false;
                 });
@@ -587,15 +578,19 @@ function showQuestion(index) {
     // Управляем кнопками
     if (confirmBtn) confirmBtn.disabled = true;
     
-    // ВСЕГДА РАЗРЕШАЕМ КНОПКУ ПРОПУСКА, КРОМЕ ПОСЛЕДНЕГО ВОПРОСА
+    // Кнопка пропуска должна быть активна всегда, кроме:
+    // 1. Последний вопрос в тесте
+    // 2. Когда мы на пропущенном вопросе (его нельзя пропускать повторно)
     if (refreshBtn) {
-        // Разрешаем пропускать всегда, кроме последнего вопроса
-        if (currentQuestionIndex < shuffledQuestionsAndProblems.length - 1) {
+        const isLastQuestion = currentQuestionIndex === shuffledQuestionsAndProblems.length - 1;
+        const isSkippedQuestion = skipQuestions.includes(currentQuestionIndex);
+        
+        if (isLastQuestion || isSkippedQuestion) {
+            refreshBtn.disabled = true;
+            refreshBtn.title = isSkippedQuestion ? "Этот вопрос уже пропущен" : "Это последний вопрос";
+        } else {
             refreshBtn.disabled = false;
             refreshBtn.title = "Вернуться к этому вопросу позже";
-        } else {
-            refreshBtn.disabled = true;
-            refreshBtn.title = "Это последний вопрос, пропустить нельзя";
         }
     }
     
@@ -647,7 +642,12 @@ function confirmAnswer() {
         // Сохраняем прогресс
         saveProgress();
         
-        // Переходим к следующему непропущенному вопросу
+        // Удаляем текущий вопрос из списка пропущенных, если он там был
+        if (skipQuestions.includes(currentQuestionIndex)) {
+            skipQuestions = skipQuestions.filter(idx => idx !== currentQuestionIndex);
+        }
+        
+        // Ищем следующий непропущенный вопрос
         let nextIndex = currentQuestionIndex + 1;
         
         // Пропускаем вопросы из skipQuestions
@@ -660,16 +660,12 @@ function confirmAnswer() {
             showQuestion(currentQuestionIndex);
             if (confirmBtn) confirmBtn.disabled = true;
         } else {
-            // Проверяем, есть ли пропущенные вопросы
-            const unansweredSkipped = skipQuestions.filter(idx => userAnswers[idx] === null);
-            
-            if (unansweredSkipped.length > 0) {
-                // Переходим к первому непропущенному вопросу
-                currentQuestionIndex = unansweredSkipped[0];
-                // Удаляем его из списка пропущенных, так как сейчас будем на него отвечать
-                skipQuestions = skipQuestions.filter(idx => idx !== currentQuestionIndex);
+            // Проверяем, есть ли еще пропущенные вопросы
+            if (skipQuestions.length > 0) {
+                // Переходим к первому пропущенному вопросу
+                currentQuestionIndex = skipQuestions[0];
                 showQuestion(currentQuestionIndex);
-                alert(`Осталось ответить на ${unansweredSkipped.length} пропущенных вопросов`);
+                alert(`Осталось ответить на ${skipQuestions.length} пропущенных вопросов`);
             } else {
                 // Все вопросы отвечены
                 localStorage.removeItem('testProgress');
@@ -695,17 +691,26 @@ function skipQuestion() {
         return;
     }
     
+    // Проверяем, не пропущен ли уже этот вопрос
+    if (skipQuestions.includes(currentQuestionIndex)) {
+        alert('Этот вопрос уже пропущен');
+        return;
+    }
+    
     console.log('⏭️ Пропускаем вопрос', currentQuestionIndex + 1);
     
     // Добавляем текущий вопрос в список пропущенных
-    if (!skipQuestions.includes(currentQuestionIndex)) {
-        skipQuestions.push(currentQuestionIndex);
-        // Сбрасываем ответ для этого вопроса
-        userAnswers[currentQuestionIndex] = null;
-    }
+    skipQuestions.push(currentQuestionIndex);
+    // Сбрасываем ответ для этого вопроса
+    userAnswers[currentQuestionIndex] = null;
     
-    // Ищем следующий непропущенный вопрос
+    // Сохраняем прогресс
+    saveProgress();
+    
+    // Переходим к следующему вопросу
     let nextIndex = currentQuestionIndex + 1;
+    
+    // Пропускаем уже пропущенные вопросы
     while (skipQuestions.includes(nextIndex) && nextIndex < shuffledQuestionsAndProblems.length) {
         nextIndex++;
     }
@@ -714,13 +719,14 @@ function skipQuestion() {
         currentQuestionIndex = nextIndex;
         showQuestion(currentQuestionIndex);
         
-        // Сохраняем прогресс
-        saveProgress();
-        
         console.log('✅ Вопрос пропущен, переходим к вопросу', currentQuestionIndex + 1);
     } else {
-        // Все вопросы пропущены или пройдены
-        alert('Все вопросы просмотрены. Вернитесь к пропущенным вопросам.');
+        // Все оставшиеся вопросы пропущены - возвращаемся к первому пропущенному
+        if (skipQuestions.length > 0) {
+            currentQuestionIndex = skipQuestions[0];
+            showQuestion(currentQuestionIndex);
+            alert('Все оставшиеся вопросы пропущены. Возвращаемся к первому пропущенному вопросу.');
+        }
     }
 }
 
