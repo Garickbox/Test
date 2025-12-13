@@ -102,172 +102,28 @@ h1 {
   font-weight: 600;
 }
 
-/* Индикаторы прогресса (заменяем прогресс-бар) */
-.progress-indicators {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 20px;
-  padding: 10px;
-  background: #f8f9fa;
-  border-radius: 12px;
-  border: 1px solid #e0e0e0;
-}
-
-.progress-indicator {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 600;
-  color: white;
-  background: #e0e0e0;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  position: relative;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.progress-indicator:hover:not(.answered) {
-  transform: scale(1.1);
-  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
-}
-
-.progress-indicator.current {
-  background: linear-gradient(135deg, #1e93c4 0%, #38a1d6 100%);
-  box-shadow: 0 0 0 2px white, 0 0 0 4px #1e93c4, 0 4px 8px rgba(30, 147, 196, 0.3);
-  transform: scale(1.1);
-}
-
-.progress-indicator.answered {
-  background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
-  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
-  cursor: not-allowed;
-  opacity: 0.9;
-}
-
-.progress-indicator.skipped {
-  background: linear-gradient(135deg, #FF9800 0%, #FFB74D 100%);
-  box-shadow: 0 2px 4px rgba(255, 152, 0, 0.3);
-  animation: pulse 2s infinite;
-}
-
-.progress-indicator.unanswered {
-  background: #e0e0e0;
-  color: #999;
-}
-
-/* Дополнительные стили для индикаторов */
-.progress-indicator {
-  position: relative;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Эффект наведения только для кликабельных индикаторов */
-.progress-indicator:not(.answered):hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-
-/* Запрещаем наведение для отвеченных вопросов */
-.progress-indicator.answered:hover {
-  transform: none;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-/* Индикатор текущего вопроса - всегда выделен */
-.progress-indicator.current {
-  animation: pulse-glow 2s infinite;
-}
-
-@keyframes pulse-glow {
-  0% {
-    box-shadow: 0 0 0 2px white, 0 0 0 4px #1e93c4, 0 4px 8px rgba(30, 147, 196, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 0 2px white, 0 0 0 6px #1e93c4, 0 6px 12px rgba(30, 147, 196, 0.5);
-  }
-  100% {
-    box-shadow: 0 0 0 2px white, 0 0 0 4px #1e93c4, 0 4px 8px rgba(30, 147, 196, 0.3);
-  }
-}
-
-/* Стили для иконок внутри индикаторов */
-.progress-indicator i {
-  font-size: 14px;
-  color: white;
-  display: block;
-}
-
-.progress-indicator.unanswered span {
-  font-size: 12px;
-  font-weight: 600;
-  color: white;
-}
-
-/* Подсказки для индикаторов */
-.progress-indicator::after {
-  content: attr(title);
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 6px 10px;
-  border-radius: 6px;
-  font-size: 12px;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s;
-  z-index: 1000;
-  margin-bottom: 5px;
-}
-
-.progress-indicator:hover::after {
-  opacity: 1;
-}
-
-/* Удаляем старый прогресс-бар */
+/* Прогресс-бар */
 .progress-container {
-  display: none;
+  background-color: #e6e6e6;
+  border-radius: 10px;
+  height: 8px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #1e93c4 0%, #38a1d6 100%);
+  transition: width 0.4s ease;
+  border-radius: 10px;
 }
 
 .progress-text {
-  display: none;
-}
-
-/* Стиль для типа вопроса с иконкой лампочки */
-.question-type {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background: #e1f2ff;
-  color: #1e93c4;
-  border-radius: 20px;
+  text-align: center;
+  font-weight: 500;
   font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 16px;
-  width: fit-content;
-}
-
-.question-type i {
-  font-size: 16px;
-}
-
-.problem-type {
-  background: #e1f7e9;
-  color: #34b86e;
-}
-
-.problem-type i {
-  color: #34b86e;
+  color: #666;
 }
 
 /* Вопрос */
@@ -281,6 +137,22 @@ h1 {
   font-weight: 500;
   line-height: 1.4;
   color: #222;
+}
+
+.question-type {
+  display: inline-block;
+  padding: 4px 10px;
+  background: #e1f2ff;
+  color: #1e93c4;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.problem-type {
+  background: #e1f7e9;
+  color: #34b86e;
 }
 
 .options-container {
@@ -332,9 +204,9 @@ h1 {
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.05); opacity: 0.8; }
-  100% { transform: scale(1); opacity: 1; }
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
 }
 
 /* Кнопки */
@@ -503,9 +375,9 @@ button:disabled {
   transform: translate(-50%, -50%);
   background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
   border-radius: 20px;
-  padding: 30px 20px;
+  padding: 40px 30px;
   width: 90%;
-  max-width: 450px;
+  max-width: 500px;
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5),
               0 0 0 2px #ff4757,
               0 0 30px rgba(255, 71, 87, 0.5);
@@ -528,24 +400,20 @@ button:disabled {
 }
 
 .anticheat-title {
-  font-size: 20px;
+  font-size: 28px;
   font-weight: 700;
   color: white;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-  text-align: center;
-  line-height: 1.3;
-  word-break: break-word;
-  padding: 0 10px;
 }
 
 .anticheat-message {
-  font-size: 16px;
+  font-size: 18px;
   color: white;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
   line-height: 1.5;
   font-weight: 500;
-  min-height: 60px;
+  min-height: 80px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -556,30 +424,30 @@ button:disabled {
 }
 
 .anticheat-timer {
-  font-size: 40px;
+  font-size: 48px;
   font-weight: 700;
   color: white;
-  margin: 20px 0;
+  margin: 25px 0;
   text-shadow: 0 0 20px rgba(255, 255, 255, 0.7);
   font-family: 'Courier New', monospace;
   background: rgba(0, 0, 0, 0.3);
-  padding: 12px;
-  border-radius: 12px;
+  padding: 15px;
+  border-radius: 15px;
   border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
 .password-input-container {
-  margin: 20px 0;
+  margin: 25px 0;
 }
 
 .password-input {
-  width: 180px;
-  padding: 12px 15px;
-  font-size: 20px;
+  width: 200px;
+  padding: 15px 20px;
+  font-size: 24px;
   text-align: center;
-  letter-spacing: 6px;
+  letter-spacing: 8px;
   border: 3px solid white;
-  border-radius: 10px;
+  border-radius: 12px;
   background: rgba(255, 255, 255, 0.9);
   color: #2c3e50;
   font-weight: 700;
@@ -598,8 +466,8 @@ button:disabled {
 .password-label {
   display: block;
   color: white;
-  font-size: 14px;
-  margin-bottom: 8px;
+  font-size: 16px;
+  margin-bottom: 10px;
   font-weight: 600;
   opacity: 0.9;
 }
@@ -608,12 +476,12 @@ button:disabled {
   background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
   color: white;
   border: none;
-  border-radius: 10px;
-  padding: 12px 30px;
-  font-size: 16px;
+  border-radius: 12px;
+  padding: 15px 40px;
+  font-size: 18px;
   font-weight: 700;
   cursor: pointer;
-  margin-top: 15px;
+  margin-top: 20px;
   transition: all 0.3s;
   box-shadow: 0 6px 0 #1a252f,
               0 10px 20px rgba(0, 0, 0, 0.3);
@@ -714,16 +582,15 @@ button:disabled {
   }
   
   .anticheat-modal {
-    padding: 25px 15px;
+    padding: 30px 20px;
   }
   
   .anticheat-title {
-    font-size: 18px;
-    padding: 0 5px;
+    font-size: 22px;
   }
   
   .anticheat-timer {
-    font-size: 32px;
+    font-size: 36px;
   }
 
   .button-group {
@@ -734,54 +601,6 @@ button:disabled {
     width: 45px;
     height: 45px;
     font-size: 16px;
-  }
-
-  .progress-indicator {
-    width: 28px;
-    height: 28px;
-    font-size: 11px;
-  }
-  
-  .progress-indicators {
-    gap: 6px;
-    padding: 8px;
-  }
-
-  .progress-indicator i {
-    font-size: 12px;
-  }
-  
-  .progress-indicator.unanswered span {
-    font-size: 11px;
-  }
-
-  .progress-indicator::after {
-    font-size: 11px;
-    padding: 4px 8px;
-    white-space: normal;
-    max-width: 120px;
-    text-align: center;
-  }
-}
-
-@media (max-width: 480px) {
-  .progress-indicator {
-    width: 24px;
-    height: 24px;
-    font-size: 10px;
-  }
-  
-  .progress-indicators {
-    gap: 4px;
-    padding: 6px;
-  }
-
-  .progress-indicator i {
-    font-size: 10px;
-  }
-  
-  .progress-indicator.unanswered span {
-    font-size: 10px;
   }
 }
 
