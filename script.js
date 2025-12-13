@@ -565,7 +565,7 @@ function finishFullScreen() {
     
     if (currentPath.includes('/test/') || currentPath.includes('ftesttokv3')) {
       // Если находимся в папке test, поднимаемся на уровень выше
-      window.location.href = '../index.html';
+      window.location.href = '/index.html';
     } else {
       // Если в корне, просто index.html
       window.location.href = 'index.html';
