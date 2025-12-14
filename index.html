@@ -757,8 +757,8 @@
         </div>
     </div>
 
-    <!-- Аудио элемент для радио -->
-    <audio id="radioPlayer" crossorigin="anonymous"></audio>
+    <!-- Аудио элемент для радио - изолирован в iframe -->
+    <iframe id="radioFrame" style="display: none;"></iframe>
 
     <script>
         // ============ СНЕЖНЫЙ CANVAS ============
@@ -840,7 +840,6 @@
         }
         
         // ============ РАДИО СИСТЕМА ============
-        const audioElement = document.getElementById('radioPlayer');
         const radioMini = document.getElementById('radioMini');
         const radioPanel = document.getElementById('radioPanel');
         const playPauseBtn = document.getElementById('playPauseBtn');
@@ -852,6 +851,7 @@
         const volumeValue = document.getElementById('volumeValue');
         const volumeIcon = document.getElementById('volumeIcon');
         const stationList = document.getElementById('stationList');
+        const radioFrame = document.getElementById('radioFrame');
         
         const radioStations = [
             { name: "Pop", key: "pop", type: "audio/mpeg" },
@@ -880,10 +880,135 @@
         let savedVolume = 0.3;
         let isPanelVisible = false;
         
+        // Аудио элемент создается внутри iframe для изоляции
+        let audioElement = null;
+        
+        // Создаем изолированный аудио элемент в iframe
+        function createIsolatedAudio() {
+            const iframeDoc = radioFrame.contentDocument || radioFrame.contentWindow.document;
+            iframeDoc.open();
+            iframeDoc.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <style>
+                        body { margin: 0; padding: 0; }
+                        audio { display: none; }
+                    </style>
+                </head>
+                <body>
+                    <audio id="radioPlayer" crossorigin="anonymous"></audio>
+                    <script>
+                        window.audioElement = document.getElementById('radioPlayer');
+                        
+                        // Экспортируем функции для управления
+                        window.playAudio = function(src) {
+                            window.audioElement.src = src;
+                            return window.audioElement.play();
+                        };
+                        
+                        window.pauseAudio = function() {
+                            window.audioElement.pause();
+                        };
+                        
+                        window.setAudioVolume = function(volume) {
+                            window.audioElement.volume = volume;
+                        };
+                        
+                        window.getAudioVolume = function() {
+                            return window.audioElement.volume;
+                        };
+                        
+                        window.getAudioSrc = function() {
+                            return window.audioElement.src;
+                        };
+                        
+                        window.setAudioSrc = function(src) {
+                            window.audioElement.src = src;
+                        };
+                        
+                        // События передаем через postMessage
+                        window.audioElement.addEventListener('playing', () => {
+                            window.parent.postMessage({ type: 'radioPlaying' }, '*');
+                        });
+                        
+                        window.audioElement.addEventListener('pause', () => {
+                            window.parent.postMessage({ type: 'radioPaused' }, '*');
+                        });
+                        
+                        window.audioElement.addEventListener('error', (e) => {
+                            window.parent.postMessage({ 
+                                type: 'radioError', 
+                                error: window.audioElement.error 
+                            }, '*');
+                        });
+                        
+                        window.audioElement.addEventListener('stalled', () => {
+                            window.parent.postMessage({ type: 'radioStalled' }, '*');
+                        });
+                    <\/script>
+                </body>
+                </html>
+            `);
+            iframeDoc.close();
+            
+            // Ждем загрузки iframe
+            setTimeout(() => {
+                audioElement = radioFrame.contentWindow;
+            }, 100);
+        }
+        
+        // Обработчик сообщений из iframe
+        window.addEventListener('message', function(event) {
+            if (!event.data || !event.data.type) return;
+            
+            switch(event.data.type) {
+                case 'radioPlaying':
+                    isRadioPlaying = true;
+                    updateRadioUI();
+                    updateStatus("В эфире", "playing");
+                    break;
+                    
+                case 'radioPaused':
+                    isRadioPlaying = false;
+                    updateRadioUI();
+                    updateStatus("Пауза", "paused");
+                    break;
+                    
+                case 'radioError':
+                    isRadioPlaying = false;
+                    updateRadioUI();
+                    updateStatus("Ошибка подключения", "error");
+                    // Не влияем на основную страницу - просто логируем
+                    console.log("Ошибка радио (изолированная):", event.data.error);
+                    break;
+                    
+                case 'radioStalled':
+                    if (isRadioPlaying) {
+                        updateStatus("Переподключение...", "connecting");
+                        // Пробуем переподключиться через 3 секунды
+                        setTimeout(() => {
+                            if (isRadioPlaying && audioElement) {
+                                const src = audioElement.getAudioSrc();
+                                if (src) {
+                                    audioElement.setAudioSrc(src);
+                                    audioElement.playAudio(src).catch(() => {
+                                        updateStatus("Требуется действие", "error");
+                                    });
+                                }
+                            }
+                        }, 3000);
+                    }
+                    break;
+            }
+        });
+        
         // Инициализация радио
         function initRadio() {
             updateVolumeDisplay();
             createStationList();
+            createIsolatedAudio(); // Создаем изолированный аудио элемент
             
             // Инициализируем качество для всех станций как 128k
             radioStations.forEach(station => {
@@ -907,7 +1032,9 @@
             }
             
             // Настраиваем громкость
-            audioElement.volume = savedVolume;
+            if (audioElement) {
+                audioElement.setAudioVolume(savedVolume);
+            }
             volumeSlider.value = savedVolume * 100;
             
             // Обработчики событий
@@ -932,27 +1059,9 @@
         
         // Настройка обработчиков событий
         function setupEventListeners() {
-            audioElement.addEventListener('playing', () => {
-                isRadioPlaying = true;
-                updateRadioUI();
-                updateStatus("В эфире", "playing");
-            });
-            
-            audioElement.addEventListener('pause', () => {
-                isRadioPlaying = false;
-                updateRadioUI();
-                updateStatus("Пауза", "paused");
-            });
-            
-            audioElement.addEventListener('error', () => {
-                updateStatus("Ошибка подключения", "error");
-                isRadioPlaying = false;
-                updateRadioUI();
-            });
-            
             // Клик по пиктограмме
             radioMini.addEventListener('click', function(e) {
-                e.stopPropagation(); // Предотвращаем всплытие
+                e.stopPropagation();
                 toggleRadioPanel();
             });
             
@@ -974,8 +1083,8 @@
             volumeSlider.addEventListener('input', function() {
                 const volume = this.value / 100;
                 savedVolume = volume;
-                if (!isMuted) {
-                    audioElement.volume = volume;
+                if (!isMuted && audioElement) {
+                    audioElement.setAudioVolume(volume);
                 }
                 updateVolumeDisplay();
             });
@@ -998,10 +1107,6 @@
             updateStationList();
             updateStatus("Подключение...", "connecting");
             
-            // Меняем источник
-            audioElement.src = streamUrl;
-            audioElement.type = station.type;
-            
             // Сохраняем последнюю станцию
             localStorage.setItem('lastStation', JSON.stringify({
                 index: index,
@@ -1009,8 +1114,11 @@
             }));
             
             // Воспроизводим если нужно
-            if (autoPlay) {
-                playRadio();
+            if (autoPlay && audioElement) {
+                playRadio(streamUrl);
+            } else if (audioElement) {
+                // Только устанавливаем источник
+                audioElement.setAudioSrc(streamUrl);
             }
         }
         
@@ -1035,32 +1143,47 @@
         }
         
         // Воспроизведение радио
-        function playRadio() {
-            const playPromise = audioElement.play();
+        function playRadio(streamUrl = null) {
+            if (!audioElement) return;
+            
+            let url = streamUrl;
+            if (!url) {
+                const station = radioStations[currentStationIndex];
+                const quality = stationQualities[station.key] || 128;
+                url = `https://abs.zaycev.fm/${station.key}${quality}k`;
+            }
+            
+            audioElement.setAudioSrc(url);
+            
+            const playPromise = audioElement.playAudio(url);
             if (playPromise !== undefined) {
                 playPromise
                     .then(() => {
-                        audioElement.volume = isMuted ? 0 : savedVolume;
-                        isRadioPlaying = true;
-                        updateRadioUI();
-                        updateStatus("В эфире", "playing");
+                        if (!isMuted) {
+                            audioElement.setAudioVolume(savedVolume);
+                        }
+                        // isRadioPlaying устанавливается через message из iframe
                     })
                     .catch(error => {
                         updateStatus("Нажмите ▶ для запуска", "paused");
+                        console.log("Ошибка воспроизведения (изолированная):", error);
                     });
             }
         }
         
         // Переключение воспроизведения
         function toggleRadioPlay() {
-            if (!audioElement.src) {
+            if (!audioElement) return;
+            
+            const currentSrc = audioElement.getAudioSrc();
+            if (!currentSrc || currentSrc === '') {
                 loadStation(currentStationIndex, true);
                 return;
             }
             
-            if (isRadioPlaying) {
-                audioElement.pause();
-            } else {
+            if (isRadioPlaying && audioElement) {
+                audioElement.pauseAudio();
+            } else if (audioElement) {
                 playRadio();
             }
         }
@@ -1096,14 +1219,16 @@
         
         // Управление звуком
         function toggleMute() {
+            if (!audioElement) return;
+            
             isMuted = !isMuted;
             if (isMuted) {
-                savedVolume = audioElement.volume;
-                audioElement.volume = 0;
+                savedVolume = audioElement.getAudioVolume();
+                audioElement.setAudioVolume(0);
                 volumeIcon.innerHTML = '🔇';
                 volumeIcon.title = "Включить звук";
             } else {
-                audioElement.volume = savedVolume;
+                audioElement.setAudioVolume(savedVolume);
                 volumeIcon.innerHTML = '🔊';
                 volumeIcon.title = "Выключить звук";
             }
