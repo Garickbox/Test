@@ -395,7 +395,7 @@
             right: 20px;
             width: 56px;
             height: 56px;
-            background: linear-gradient(135deg, #4b6cb7 0%, #667eea 100%);
+            background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%);
             color: white;
             border-radius: 50%;
             display: flex;
@@ -403,39 +403,33 @@
             justify-content: center;
             font-size: 22px;
             cursor: pointer;
-            z-index: 100;
-            box-shadow: 0 6px 20px rgba(76, 108, 183, 0.4);
-            border: 3px solid rgba(255, 255, 255, 0.9);
+            z-index: 1000;
+            box-shadow: 
+                0 8px 20px rgba(0, 0, 0, 0.3),
+                0 0 0 2px rgba(255, 255, 255, 0.15),
+                inset 0 2px 4px rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             transition: all 0.3s ease;
             user-select: none;
-            overflow: hidden;
+            touch-action: manipulation;
         }
         
         .radio-mini:hover {
             transform: scale(1.1);
-            box-shadow: 0 8px 25px rgba(76, 108, 183, 0.6);
+            box-shadow: 
+                0 10px 25px rgba(76, 108, 183, 0.6),
+                0 0 0 3px rgba(255, 255, 255, 0.2);
         }
         
         .radio-mini.playing {
-            background: linear-gradient(135deg, #17B169 0%, #4b6cb7 100%);
+            background: linear-gradient(135deg, #17B169 0%, #182848 100%);
             animation: pulse 2s infinite;
         }
         
-        .radio-mini.error {
-            background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
-            animation: shake 0.5s ease-in-out;
-        }
-        
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(76, 108, 183, 0.7); }
-            70% { box-shadow: 0 0 0 12px rgba(76, 108, 183, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(76, 108, 183, 0); }
-        }
-        
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-3px); }
-            75% { transform: translateX(3px); }
+            0% { box-shadow: 0 0 0 0 rgba(23, 177, 105, 0.7); }
+            70% { box-shadow: 0 0 0 12px rgba(23, 177, 105, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(23, 177, 105, 0); }
         }
         
         /* Панель управления */
@@ -444,16 +438,19 @@
             bottom: 85px;
             right: 20px;
             background: rgba(0, 0, 0, 0.92);
-            backdrop-filter: blur(15px);
+            backdrop-filter: blur(20px);
             border-radius: 16px;
             padding: 20px;
-            min-width: 200px;
-            z-index: 99;
+            min-width: 220px;
+            z-index: 999;
             opacity: 0;
             transform: translateY(20px) scale(0.95);
             transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
             visibility: hidden;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.15);
         }
         
@@ -461,43 +458,6 @@
             opacity: 1;
             transform: translateY(0) scale(1);
             visibility: visible;
-        }
-        
-        .radio-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            color: white;
-        }
-        
-        .radio-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: rgba(255, 255, 255, 0.9);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .close-radio {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: white;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-        
-        .close-radio:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: rotate(90deg);
         }
         
         .station-info {
@@ -534,24 +494,9 @@
             animation: blink 2s infinite;
         }
         
-        .status-dot.connecting {
-            background: #FFA500;
-            animation: blink-fast 1s infinite;
-        }
-        
-        .status-dot.error {
-            background: #FF4444;
-            animation: none;
-        }
-        
         @keyframes blink {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.3; }
-        }
-        
-        @keyframes blink-fast {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.2; }
         }
         
         .radio-controls {
@@ -562,11 +507,11 @@
         }
         
         .radio-btn {
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.1);
             border: none;
             color: white;
             height: 40px;
-            border-radius: 10px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -576,16 +521,8 @@
         }
         
         .radio-btn:hover {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.2);
             transform: translateY(-2px);
-        }
-        
-        .radio-btn:active {
-            transform: translateY(0);
-        }
-        
-        .radio-btn.wide {
-            grid-column: span 2;
         }
         
         .volume-control {
@@ -599,6 +536,13 @@
             font-size: 14px;
             color: rgba(255, 255, 255, 0.7);
             min-width: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .volume-icon:hover {
+            color: white;
+            transform: scale(1.1);
         }
         
         .volume-slider {
@@ -630,32 +574,57 @@
         
         .station-list {
             margin-top: 15px;
-            max-height: 120px;
+            max-height: 180px;
             overflow-y: auto;
             padding-right: 5px;
         }
         
         .station-item {
-            padding: 8px 10px;
+            padding: 10px 12px;
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            margin-bottom: 5px;
+            border-radius: 10px;
+            margin-bottom: 8px;
             font-size: 12px;
             color: rgba(255, 255, 255, 0.8);
             cursor: pointer;
             transition: all 0.2s;
-            border: 1px solid transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
         .station-item:hover {
             background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
         }
         
-        .station-item.active {
-            background: rgba(76, 108, 183, 0.3);
-            border-color: rgba(76, 108, 183, 0.5);
-            color: white;
+        .station-item.active-128 {
+            background: rgba(220, 53, 69, 0.2);
+            border-color: rgba(220, 53, 69, 0.4);
+        }
+        
+        .station-item.active-256 {
+            background: rgba(40, 167, 69, 0.2);
+            border-color: rgba(40, 167, 69, 0.4);
+        }
+        
+        .station-item .quality-indicator {
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            margin-left: 8px;
+        }
+        
+        .station-item.active-128 .quality-indicator {
+            background: rgba(220, 53, 69, 0.3);
+            color: #ff6b6b;
+        }
+        
+        .station-item.active-256 .quality-indicator {
+            background: rgba(40, 167, 69, 0.3);
+            color: #69ff9c;
         }
         
         @media (max-width: 480px) {
@@ -702,31 +671,31 @@
     </style>
 </head>
 <body>
+    <!-- Canvas для снега -->
     <canvas id="snowCanvas"></canvas>
+    
+    <!-- Снежинки на заднем фоне -->
     <div class="snowflakes" id="snowflakes"></div>
+    
+    <!-- Снежные края контейнера -->
     <div class="snow-edges"></div>
     <div class="snow-edges bottom"></div>
     
     <!-- Мини-пиктограмма радио -->
-    <div class="radio-mini" id="radioMini" title="Зимнее радио">
+    <div class="radio-mini" id="radioMini" title="Радио Зайцев.FM - Нажмите для управления">
         📻
     </div>
     
     <!-- Панель управления радио -->
     <div class="radio-panel" id="radioPanel">
-        <div class="radio-header">
-            <div class="radio-title">❄ Зимнее радио</div>
-            <button class="close-radio" onclick="toggleRadioPanel()">✕</button>
-        </div>
-        
         <div class="station-info">
             <div class="station-name" id="currentStationName">
                 <span id="radioIconMini">📻</span>
-                <span id="stationTitle">Загрузка...</span>
+                <span id="stationTitle">Выберите станцию</span>
             </div>
             <div class="station-status">
                 <span class="status-dot" id="statusDot"></span>
-                <span id="stationStatus">Подключение...</span>
+                <span id="stationStatus">Готово</span>
             </div>
         </div>
         
@@ -734,11 +703,10 @@
             <button class="radio-btn" onclick="changeStation(-1)" title="Предыдущая станция">⏮</button>
             <button class="radio-btn" onclick="toggleRadioPlay()" id="playPauseBtn" title="Воспроизведение/Пауза">▶</button>
             <button class="radio-btn" onclick="changeStation(1)" title="Следующая станция">⏭</button>
-            <button class="radio-btn" onclick="toggleMute()" id="muteBtn" title="Включить/выключить звук">🔊</button>
         </div>
         
         <div class="volume-control">
-            <span class="volume-icon" id="volumeIcon">🔊</span>
+            <span class="volume-icon" id="volumeIcon" onclick="toggleMute()" title="Включить/выключить звук">🔊</span>
             <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="30">
             <span class="volume-value" id="volumeValue">30%</span>
         </div>
@@ -746,6 +714,7 @@
         <div class="station-list" id="stationList"></div>
     </div>
     
+    <!-- Основной контейнер -->
     <div class="container">
         <div class="header">
             <div class="floating-elements">
@@ -779,349 +748,24 @@
                 <div class="kumir-note">
                     <strong>❄ Зимняя версия</strong><br>
                     Код для прохождения теста будет сообщен учителем на уроке.<br>
-                    Для демо-теста используйте: <strong>test</strong><br>
-                    <small style="color: #4b6cb7; font-size: 12px; margin-top: 5px; display: block;">
-                        🎵 Фоновая зимняя музыка
-                    </small>
+                    Для демо-теста используйте: <strong>test</strong>
+                    <div style="margin-top: 10px; font-size: 12px; color: #4b6cb7;">
+                        🎵 Фоновая музыка доступна в правом нижнем углу
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Аудио элемент -->
+    <!-- Аудио элемент для радио -->
     <audio id="radioPlayer" crossorigin="anonymous"></audio>
 
     <script>
-        // ============ РАДИО СИСТЕМА ============
-        const radioPlayer = document.getElementById('radioPlayer');
-        const radioMini = document.getElementById('radioMini');
-        const radioPanel = document.getElementById('radioPanel');
-        const playPauseBtn = document.getElementById('playPauseBtn');
-        const currentStationName = document.getElementById('stationTitle');
-        const stationStatus = document.getElementById('stationStatus');
-        const statusDot = document.getElementById('statusDot');
-        const radioIconMini = document.getElementById('radioIconMini');
-        const volumeSlider = document.getElementById('volumeSlider');
-        const volumeValue = document.getElementById('volumeValue');
-        const volumeIcon = document.getElementById('volumeIcon');
-        const muteBtn = document.getElementById('muteBtn');
-        const stationList = document.getElementById('stationList');
-        
-        // ОБНОВЛЕННЫЙ список надежных радиостанций
-        const radioStations = [
-            {
-                name: "Зимняя классика",
-                url: "https://stream.radio.co/sd7d98bb5d/listen",
-                type: "audio/mpeg"
-            },
-            {
-                name: "Рождественские песни",
-                url: "https://stream.zeno.fm/f3wvbbqmdg8uv",
-                type: "audio/mpeg"
-            },
-            {
-                name: "Новогодние хиты",
-                url: "https://icecast.rtl.pl/christmas",
-                type: "audio/mpeg"
-            },
-            {
-                name: "Зимний джаз",
-                url: "https://stream.zeno.fm/0r0xa792kwzuv",
-                type: "audio/mpeg"
-            },
-            {
-                name: "Тихая зима",
-                url: "https://stream.zeno.fm/e0x5q9kh9g8uv",
-                type: "audio/mpeg"
-            }
-        ];
-        
-        let currentStationIndex = 0;
-        let isRadioPlaying = false;
-        let isMuted = false;
-        let savedVolume = 0.3;
-        let isPanelVisible = false;
-        let connectionAttempts = 0;
-        const MAX_ATTEMPTS = 3;
-        
-        // Инициализация радио
-        function initRadio() {
-            updateVolumeDisplay();
-            createStationList();
-            
-            // Настраиваем громкость
-            radioPlayer.volume = savedVolume;
-            volumeSlider.value = savedVolume * 100;
-            
-            // Пробуем запустить радио с задержкой
-            setTimeout(() => {
-                loadStation(currentStationIndex, true);
-            }, 1500);
-            
-            // Обработчики событий
-            setupEventListeners();
-            
-            // Периодическая проверка соединения
-            setInterval(checkConnection, 30000);
-        }
-        
-        // Создание списка станций
-        function createStationList() {
-            stationList.innerHTML = '';
-            radioStations.forEach((station, index) => {
-                const item = document.createElement('div');
-                item.className = `station-item ${index === currentStationIndex ? 'active' : ''}`;
-                item.innerHTML = `❄ ${station.name}`;
-                item.onclick = () => selectStation(index);
-                stationList.appendChild(item);
-            });
-        }
-        
-        // Настройка обработчиков событий
-        function setupEventListeners() {
-            radioPlayer.addEventListener('playing', () => {
-                isRadioPlaying = true;
-                connectionAttempts = 0;
-                updateRadioUI();
-                updateStatus("В эфире", "playing");
-            });
-            
-            radioPlayer.addEventListener('pause', () => {
-                isRadioPlaying = false;
-                updateRadioUI();
-                updateStatus("Пауза", "paused");
-            });
-            
-            radioPlayer.addEventListener('error', handleRadioError);
-            
-            radioPlayer.addEventListener('stalled', () => {
-                if (isRadioPlaying) {
-                    updateStatus("Переподключение...", "connecting");
-                    setTimeout(() => retryConnection(), 2000);
-                }
-            });
-            
-            // Клик по пиктограмме
-            radioMini.addEventListener('click', toggleRadioPanel);
-            
-            // Закрытие панели при клике вне ее
-            document.addEventListener('click', (e) => {
-                if (isPanelVisible && 
-                    !radioPanel.contains(e.target) && 
-                    !radioMini.contains(e.target)) {
-                    toggleRadioPanel();
-                }
-            });
-        }
-        
-        // Загрузка станции
-        function loadStation(index, autoPlay = false) {
-            if (index >= radioStations.length) index = 0;
-            if (index < 0) index = radioStations.length - 1;
-            
-            currentStationIndex = index;
-            const station = radioStations[index];
-            
-            // Обновляем UI
-            currentStationName.textContent = station.name;
-            updateStationList();
-            updateStatus("Подключение...", "connecting");
-            
-            // Меняем источник
-            radioPlayer.src = station.url;
-            radioPlayer.type = station.type;
-            
-            // Пробуем воспроизвести если нужно
-            if (autoPlay) {
-                setTimeout(() => {
-                    const playPromise = radioPlayer.play();
-                    if (playPromise !== undefined) {
-                        playPromise
-                            .then(() => {
-                                radioPlayer.volume = isMuted ? 0 : savedVolume;
-                                isRadioPlaying = true;
-                                updateRadioUI();
-                            })
-                            .catch(error => {
-                                console.log("Автовоспроизведение заблокировано");
-                                updateStatus("Кликните для запуска", "paused");
-                            });
-                    }
-                }, 500);
-            }
-        }
-        
-        // Обработка ошибок
-        function handleRadioError() {
-            connectionAttempts++;
-            
-            if (connectionAttempts < MAX_ATTEMPTS) {
-                updateStatus(`Попытка ${connectionAttempts}/${MAX_ATTEMPTS}...`, "connecting");
-                setTimeout(() => {
-                    loadStation((currentStationIndex + 1) % radioStations.length, true);
-                }, 2000);
-            } else {
-                updateStatus("Ошибка подключения", "error");
-                isRadioPlaying = false;
-                updateRadioUI();
-                radioMini.classList.add('error');
-                
-                // Сброс после 10 секунд
-                setTimeout(() => {
-                    radioMini.classList.remove('error');
-                    connectionAttempts = 0;
-                }, 10000);
-            }
-        }
-        
-        // Повторное подключение
-        function retryConnection() {
-            if (isRadioPlaying) {
-                radioPlayer.load();
-                const playPromise = radioPlayer.play();
-                if (playPromise !== undefined) {
-                    playPromise.catch(() => {
-                        updateStatus("Требуется действие", "error");
-                    });
-                }
-            }
-        }
-        
-        // Проверка соединения
-        function checkConnection() {
-            if (isRadioPlaying && radioPlayer.readyState === 0) {
-                updateStatus("Проверка связи...", "connecting");
-                retryConnection();
-            }
-        }
-        
-        // Переключение воспроизведения
-        function toggleRadioPlay() {
-            if (!radioPlayer.src) {
-                loadStation(currentStationIndex, true);
-                return;
-            }
-            
-            if (isRadioPlaying) {
-                radioPlayer.pause();
-            } else {
-                const playPromise = radioPlayer.play();
-                if (playPromise !== undefined) {
-                    playPromise.catch(error => {
-                        console.log("Ошибка воспроизведения:", error);
-                        loadStation(currentStationIndex, true);
-                    });
-                }
-            }
-        }
-        
-        // Смена станции
-        function changeStation(direction) {
-            const newIndex = (currentStationIndex + direction + radioStations.length) % radioStations.length;
-            loadStation(newIndex, isRadioPlaying);
-        }
-        
-        // Выбор станции из списка
-        function selectStation(index) {
-            loadStation(index, isRadioPlaying);
-        }
-        
-        // Обновление списка станций
-        function updateStationList() {
-            document.querySelectorAll('.station-item').forEach((item, index) => {
-                item.classList.toggle('active', index === currentStationIndex);
-            });
-        }
-        
-        // Управление звуком
-        function toggleMute() {
-            isMuted = !isMuted;
-            if (isMuted) {
-                savedVolume = radioPlayer.volume;
-                radioPlayer.volume = 0;
-                muteBtn.innerHTML = "🔇";
-                muteBtn.title = "Включить звук";
-            } else {
-                radioPlayer.volume = savedVolume;
-                muteBtn.innerHTML = "🔊";
-                muteBtn.title = "Выключить звук";
-            }
-            updateVolumeDisplay();
-        }
-        
-        // Обновление UI
-        function updateRadioUI() {
-            if (isRadioPlaying) {
-                radioMini.classList.add('playing');
-                radioMini.classList.remove('error');
-                radioMini.innerHTML = '🎵';
-                radioIconMini.innerHTML = '🎵';
-                playPauseBtn.innerHTML = '⏸';
-                playPauseBtn.title = "Пауза";
-            } else {
-                radioMini.classList.remove('playing');
-                radioMini.innerHTML = '📻';
-                radioIconMini.innerHTML = '📻';
-                playPauseBtn.innerHTML = '▶';
-                playPauseBtn.title = "Воспроизведение";
-            }
-        }
-        
-        // Обновление статуса
-        function updateStatus(text, type) {
-            stationStatus.textContent = text;
-            statusDot.className = 'status-dot';
-            
-            switch(type) {
-                case 'playing':
-                    statusDot.classList.add('playing');
-                    break;
-                case 'connecting':
-                    statusDot.classList.add('connecting');
-                    break;
-                case 'error':
-                    statusDot.classList.add('error');
-                    break;
-                case 'paused':
-                    // Без анимации для паузы
-                    break;
-            }
-        }
-        
-        // Управление панелью
-        function toggleRadioPanel() {
-            isPanelVisible = !isPanelVisible;
-            radioPanel.classList.toggle('show', isPanelVisible);
-        }
-        
-        // Управление громкостью
-        volumeSlider.addEventListener('input', function() {
-            const volume = this.value / 100;
-            savedVolume = volume;
-            if (!isMuted) {
-                radioPlayer.volume = volume;
-            }
-            updateVolumeDisplay();
-        });
-        
-        function updateVolumeDisplay() {
-            const volumePercent = Math.round((isMuted ? 0 : savedVolume) * 100);
-            volumeValue.textContent = volumePercent + '%';
-            volumeIcon.innerHTML = getVolumeIcon(volumePercent);
-        }
-        
-        function getVolumeIcon(volume) {
-            if (volume === 0) return '🔇';
-            if (volume < 30) return '🔈';
-            if (volume < 70) return '🔉';
-            return '🔊';
-        }
-        
         // ============ СНЕЖНЫЙ CANVAS ============
         const canvas = document.getElementById('snowCanvas');
         const ctx = canvas.getContext('2d');
         let snowflakes = [];
-        const snowflakeCount = 250;
+        const snowflakeCount = 150;
         
         class Snowflake {
             constructor() {
@@ -1153,12 +797,14 @@
             draw() {
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                
                 const gradient = ctx.createRadialGradient(
                     this.x, this.y, 0,
                     this.x, this.y, this.size * 2
                 );
                 gradient.addColorStop(0, `rgba(255, 255, 255, ${this.opacity})`);
                 gradient.addColorStop(1, `rgba(255, 255, 255, 0)`);
+                
                 ctx.fillStyle = gradient;
                 ctx.fill();
                 
@@ -1172,6 +818,7 @@
         function initSnow() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
+            
             snowflakes = [];
             for (let i = 0; i < snowflakeCount; i++) {
                 snowflakes.push(new Snowflake());
@@ -1180,59 +827,416 @@
         
         function animateSnow() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
             ctx.fillStyle = 'rgba(26, 31, 53, 0.05)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
             snowflakes.forEach(flake => {
                 flake.update();
                 flake.draw();
             });
+            
             requestAnimationFrame(animateSnow);
         }
         
-        // ============ ОСНОВНЫЕ ФУНКЦИИ ============
+        // ============ РАДИО СИСТЕМА ============
+        const audioElement = document.getElementById('radioPlayer');
+        const radioMini = document.getElementById('radioMini');
+        const radioPanel = document.getElementById('radioPanel');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const currentStationName = document.getElementById('stationTitle');
+        const stationStatus = document.getElementById('stationStatus');
+        const statusDot = document.getElementById('statusDot');
+        const radioIconMini = document.getElementById('radioIconMini');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const volumeValue = document.getElementById('volumeValue');
+        const volumeIcon = document.getElementById('volumeIcon');
+        const stationList = document.getElementById('stationList');
+        
+        const radioStations = [
+            { name: "Pop", key: "pop", type: "audio/mpeg" },
+            { name: "Club", key: "club", type: "audio/mpeg" },
+            { name: "NewRock", key: "rock", type: "audio/mpeg" },
+            { name: "Disco", key: "disco", type: "audio/mpeg" },
+            { name: "Шансон", key: "shanson", type: "audio/mpeg" },
+            { name: "Rus", key: "rus", type: "audio/mpeg" },
+            { name: "RnB", key: "rnb", type: "audio/mpeg" },
+            { name: "Relax", key: "relax", type: "audio/mpeg" },
+            { name: "Зайчата", key: "zaychata", type: "audio/mpeg" },
+            { name: "K-Pop", key: "kpop", type: "audio/mpeg" },
+            { name: "Rap", key: "rap", type: "audio/mpeg" },
+            { name: "Metal", key: "metal", type: "audio/mpeg" },
+            { name: "Bass", key: "bass", type: "audio/mpeg" },
+            { name: "Love", key: "love", type: "audio/mpeg" },
+            { name: "РуРок", key: "rurock", type: "audio/mpeg" },
+            { name: "Folk", key: "folk", type: "audio/mpeg" },
+            { name: "Classic", key: "classic", type: "audio/mpeg" }
+        ];
+        
+        const stationQualities = {};
+        let currentStationIndex = 0;
+        let isRadioPlaying = false;
+        let isMuted = false;
+        let savedVolume = 0.3;
+        let isPanelVisible = false;
+        
+        // Инициализация радио
+        function initRadio() {
+            updateVolumeDisplay();
+            createStationList();
+            
+            // Инициализируем качество для всех станций как 128k
+            radioStations.forEach(station => {
+                stationQualities[station.key] = 128;
+            });
+            
+            // Пытаемся восстановить последнюю станцию
+            const lastStation = localStorage.getItem('lastStation');
+            if (lastStation) {
+                try {
+                    const saved = JSON.parse(lastStation);
+                    const index = saved.index || 0;
+                    if (index < radioStations.length) {
+                        currentStationIndex = index;
+                        stationQualities[radioStations[index].key] = saved.quality || 128;
+                        currentStationName.textContent = `${radioStations[index].name} (${saved.quality || 128}k)`;
+                    }
+                } catch (e) {
+                    console.log("Не удалось восстановить последнюю станцию");
+                }
+            }
+            
+            // Настраиваем громкость
+            audioElement.volume = savedVolume;
+            volumeSlider.value = savedVolume * 100;
+            
+            // Обработчики событий
+            setupEventListeners();
+        }
+        
+        // Создание списка станций
+        function createStationList() {
+            stationList.innerHTML = '';
+            radioStations.forEach((station, index) => {
+                const item = document.createElement('div');
+                const quality = stationQualities[station.key] || 128;
+                item.className = `station-item ${index === currentStationIndex ? `active-${quality}` : ''}`;
+                item.innerHTML = `
+                    <span>🎵 ${station.name}</span>
+                    <span class="quality-indicator">${quality}k</span>
+                `;
+                item.onclick = () => selectStation(index);
+                stationList.appendChild(item);
+            });
+        }
+        
+        // Настройка обработчиков событий
+        function setupEventListeners() {
+            audioElement.addEventListener('playing', () => {
+                isRadioPlaying = true;
+                updateRadioUI();
+                updateStatus("В эфире", "playing");
+            });
+            
+            audioElement.addEventListener('pause', () => {
+                isRadioPlaying = false;
+                updateRadioUI();
+                updateStatus("Пауза", "paused");
+            });
+            
+            audioElement.addEventListener('error', () => {
+                updateStatus("Ошибка подключения", "error");
+                isRadioPlaying = false;
+                updateRadioUI();
+            });
+            
+            // Клик по пиктограмме
+            radioMini.addEventListener('click', function(e) {
+                e.stopPropagation(); // Предотвращаем всплытие
+                toggleRadioPanel();
+            });
+            
+            // Закрытие панели при клике вне ее
+            document.addEventListener('click', (e) => {
+                if (isPanelVisible && 
+                    !radioPanel.contains(e.target) && 
+                    !radioMini.contains(e.target)) {
+                    toggleRadioPanel();
+                }
+            });
+            
+            // Предотвращаем закрытие при клике внутри панели
+            radioPanel.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+            
+            // Громкость
+            volumeSlider.addEventListener('input', function() {
+                const volume = this.value / 100;
+                savedVolume = volume;
+                if (!isMuted) {
+                    audioElement.volume = volume;
+                }
+                updateVolumeDisplay();
+            });
+        }
+        
+        // Загрузка станции
+        function loadStation(index, autoPlay = false) {
+            if (index >= radioStations.length) index = 0;
+            if (index < 0) index = radioStations.length - 1;
+            
+            currentStationIndex = index;
+            const station = radioStations[index];
+            const quality = stationQualities[station.key] || 128;
+            
+            // Формируем URL
+            const streamUrl = `https://abs.zaycev.fm/${station.key}${quality}k`;
+            
+            // Обновляем UI
+            currentStationName.textContent = `${station.name} (${quality}k)`;
+            updateStationList();
+            updateStatus("Подключение...", "connecting");
+            
+            // Меняем источник
+            audioElement.src = streamUrl;
+            audioElement.type = station.type;
+            
+            // Сохраняем последнюю станцию
+            localStorage.setItem('lastStation', JSON.stringify({
+                index: index,
+                quality: quality
+            }));
+            
+            // Воспроизводим если нужно
+            if (autoPlay) {
+                playRadio();
+            }
+        }
+        
+        // Выбор станции (логика вариант 1)
+        function selectStation(index) {
+            const station = radioStations[index];
+            const isSameStation = index === currentStationIndex;
+            
+            if (isSameStation) {
+                // Переключаем качество
+                stationQualities[station.key] = stationQualities[station.key] === 128 ? 256 : 128;
+            } else {
+                // Новую станцию загружаем с качеством по умолчанию или сохраненным
+                if (typeof stationQualities[station.key] === 'undefined') {
+                    stationQualities[station.key] = 128;
+                }
+                currentStationIndex = index;
+            }
+            
+            // Загружаем станцию
+            loadStation(currentStationIndex, isRadioPlaying);
+        }
+        
+        // Воспроизведение радио
+        function playRadio() {
+            const playPromise = audioElement.play();
+            if (playPromise !== undefined) {
+                playPromise
+                    .then(() => {
+                        audioElement.volume = isMuted ? 0 : savedVolume;
+                        isRadioPlaying = true;
+                        updateRadioUI();
+                        updateStatus("В эфире", "playing");
+                    })
+                    .catch(error => {
+                        updateStatus("Нажмите ▶ для запуска", "paused");
+                    });
+            }
+        }
+        
+        // Переключение воспроизведения
+        function toggleRadioPlay() {
+            if (!audioElement.src) {
+                loadStation(currentStationIndex, true);
+                return;
+            }
+            
+            if (isRadioPlaying) {
+                audioElement.pause();
+            } else {
+                playRadio();
+            }
+        }
+        
+        // Смена станции
+        function changeStation(direction) {
+            const newIndex = (currentStationIndex + direction + radioStations.length) % radioStations.length;
+            loadStation(newIndex, isRadioPlaying);
+        }
+        
+        // Обновление списка станций
+        function updateStationList() {
+            document.querySelectorAll('.station-item').forEach((item, index) => {
+                const station = radioStations[index];
+                const quality = stationQualities[station.key] || 128;
+                
+                item.classList.remove('active-128', 'active-256');
+                
+                if (index === currentStationIndex) {
+                    item.classList.add(`active-${quality}`);
+                }
+                
+                const qualityIndicator = item.querySelector('.quality-indicator');
+                if (qualityIndicator) {
+                    qualityIndicator.textContent = `${quality}k`;
+                    qualityIndicator.className = 'quality-indicator';
+                    if (index === currentStationIndex) {
+                        qualityIndicator.classList.add(`active-${quality}`);
+                    }
+                }
+            });
+        }
+        
+        // Управление звуком
+        function toggleMute() {
+            isMuted = !isMuted;
+            if (isMuted) {
+                savedVolume = audioElement.volume;
+                audioElement.volume = 0;
+                volumeIcon.innerHTML = '🔇';
+                volumeIcon.title = "Включить звук";
+            } else {
+                audioElement.volume = savedVolume;
+                volumeIcon.innerHTML = '🔊';
+                volumeIcon.title = "Выключить звук";
+            }
+            updateVolumeDisplay();
+        }
+        
+        // Обновление UI
+        function updateRadioUI() {
+            if (isRadioPlaying) {
+                radioMini.classList.add('playing');
+                radioMini.innerHTML = '🎵';
+                radioIconMini.innerHTML = '🎵';
+                playPauseBtn.innerHTML = '⏸';
+                playPauseBtn.title = "Пауза";
+            } else {
+                radioMini.classList.remove('playing');
+                radioMini.innerHTML = '📻';
+                radioIconMini.innerHTML = '📻';
+                playPauseBtn.innerHTML = '▶';
+                playPauseBtn.title = "Воспроизведение";
+            }
+        }
+        
+        // Обновление статуса
+        function updateStatus(text, type) {
+            stationStatus.textContent = text;
+            
+            switch(type) {
+                case 'playing':
+                    statusDot.style.background = '#17B169';
+                    statusDot.style.animation = 'blink 2s infinite';
+                    break;
+                case 'connecting':
+                    statusDot.style.background = '#FFA500';
+                    statusDot.style.animation = 'blink 1s infinite';
+                    break;
+                case 'error':
+                    statusDot.style.background = '#FF4444';
+                    statusDot.style.animation = 'none';
+                    break;
+                case 'paused':
+                    statusDot.style.background = '#666';
+                    statusDot.style.animation = 'none';
+                    break;
+            }
+        }
+        
+        // Управление панелью
+        function toggleRadioPanel() {
+            isPanelVisible = !isPanelVisible;
+            
+            if (isPanelVisible) {
+                radioPanel.classList.add('show');
+            } else {
+                radioPanel.classList.remove('show');
+            }
+        }
+        
+        // Обновление отображения громкости
+        function updateVolumeDisplay() {
+            const volumePercent = Math.round((isMuted ? 0 : savedVolume) * 100);
+            volumeValue.textContent = volumePercent + '%';
+        }
+        
+        // ============ ОРИГИНАЛЬНЫЕ ФУНКЦИИ ============
         function openTest() {
             let testName = document.getElementById('testName').value.trim();
+            
             if (!testName) {
                 testName = 'test';
                 document.getElementById('testName').value = 'test';
             }
-            window.location.href = `test.html?test=${testName}`;
+            
+            const testPath = `test.html?test=${testName}`;
+            window.location.href = testPath;
         }
         
+        // ============ CSS СНЕЖИНКИ ============
         function createSnowflakesCSS() {
-            const container = document.getElementById('snowflakes');
-            for (let i = 0; i < 120; i++) {
-                const flake = document.createElement('div');
-                flake.className = 'snowflake';
+            const snowflakesContainer = document.getElementById('snowflakes');
+            const snowflakeCount = 70;
+            
+            for (let i = 0; i < snowflakeCount; i++) {
+                const snowflake = document.createElement('div');
+                snowflake.classList.add('snowflake');
+                
                 const size = Math.random() * 6 + 2;
-                flake.style.cssText = `
-                    width: ${size}px;
-                    height: ${size}px;
-                    left: ${Math.random() * 100}vw;
-                    opacity: ${Math.random() * 0.7 + 0.3};
-                    animation-duration: ${Math.random() * 20 + 10}s;
-                    animation-delay: ${Math.random() * 10}s;
-                `;
-                container.appendChild(flake);
+                const left = Math.random() * 100;
+                const opacity = Math.random() * 0.7 + 0.3;
+                const duration = Math.random() * 20 + 10;
+                const delay = Math.random() * 10;
+                
+                snowflake.style.width = `${size}px`;
+                snowflake.style.height = `${size}px`;
+                snowflake.style.left = `${left}vw`;
+                snowflake.style.opacity = opacity;
+                snowflake.style.animationDuration = `${duration}s`;
+                snowflake.style.animationDelay = `${delay}s`;
+                
+                snowflakesContainer.appendChild(snowflake);
             }
         }
         
         // ============ ИНИЦИАЛИЗАЦИЯ ============
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', function() {
+            // Фокус на поле ввода
             document.getElementById('testName').focus();
+            
+            // Создаем снежинки CSS
             createSnowflakesCSS();
+            
+            // Инициализируем Canvas снег
             initSnow();
             animateSnow();
+            
+            // Инициализируем радио
             initRadio();
             
-            window.addEventListener('resize', initSnow);
+            // Обработчик ресайза
+            window.addEventListener('resize', function() {
+                initSnow();
+            });
             
-            document.getElementById('testName').addEventListener('input', function() {
+            // Обработка ввода
+            document.getElementById('testName').addEventListener('input', function(e) {
                 this.value = this.value.toLowerCase().replace(/[^a-z0-9]/g, '');
             });
             
+            // Enter для отправки
             document.getElementById('testName').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') openTest();
+                if (e.key === 'Enter') {
+                    openTest();
+                }
             });
         });
     </script>
