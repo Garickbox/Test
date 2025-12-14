@@ -7,10 +7,20 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="test-body">
+<body class="test-body winter-theme">
+  <!-- Canvas для снега -->
+  <canvas id="snowCanvas"></canvas>
+  
+  <!-- Снежинки на заднем фоне -->
+  <div class="snowflakes" id="snowflakes"></div>
+  
+  <!-- Снежные края контейнера -->
+  <div class="snow-edges"></div>
+  <div class="snow-edges bottom"></div>
+  
   <!-- Основной контейнер теста -->
-  <div class="telegram-container">
-    <div class="telegram-header">
+  <div class="telegram-container winter-container">
+    <div class="telegram-header winter-header">
       <h1 id="page-title">Загрузка теста...</h1>
     </div>
 
@@ -35,29 +45,29 @@
           </select>
         </div>
       </div>
-      <button class="start-test-btn test-btn" id="start-test-btn">
+      <button class="start-test-btn test-btn winter-btn" id="start-test-btn">
         <i class="fas fa-play-circle"></i> Начать контрольную
       </button>
     </div>
 
     <div id="test-content" style="display: none;">
       <div class="section">
-        <div class="progress-container">
+        <div class="progress-container winter-progress">
           <div class="progress-bar" id="progress-bar"></div>
         </div>
-        <div class="progress-text" id="progress-text">Вопрос 0 из 0</div>
+        <div class="progress-text winter-text" id="progress-text">Вопрос 0 из 0</div>
       </div>
 
       <div class="section">
         <div class="question-container">
-          <div class="question-type" id="question-type"></div>
-          <div class="question-text" id="question-text"></div>
+          <div class="question-type winter-question-type" id="question-type"></div>
+          <div class="question-text winter-question-text" id="question-text"></div>
           <div class="options-container" id="options-container"></div>
           <div class="button-group">
-            <button id="confirm-btn" class="test-btn" disabled>
+            <button id="confirm-btn" class="test-btn winter-btn" disabled>
               <i class="fas fa-check-circle"></i> Подтвердить ответ
             </button>
-            <button id="refresh-btn" class="refresh-btn" disabled title="Вернуться к этому вопросу позже">
+            <button id="refresh-btn" class="refresh-btn winter-refresh-btn" disabled title="Вернуться к этому вопросу позже">
               <i class="fas fa-redo"></i>
             </button>
           </div>
@@ -69,22 +79,22 @@
   <!-- Полноэкранный результат с двумя состояниями -->
   <div id="fullscreen-result" style="display: none;">
     <!-- Состояние 1: Показ оценки (изначальное) -->
-    <div class="fullscreen-content" id="grade-screen">
+    <div class="fullscreen-content winter-fullscreen" id="grade-screen">
       <h2><i class="fas fa-trophy"></i> Ваш результат</h2>
       <div class="fullscreen-grade" id="fullscreen-grade">5</div>
       <p style="margin: 15px 0; color: #666;">Набрано баллов: <span id="fullscreen-score">0</span> из <span id="fullscreen-max-score">0</span></p>
       <div id="fullscreen-breakdown" style="margin: 15px 0; color: #555; font-size: 14px;"></div>
-      <button class="fullscreen-btn test-btn" id="finish-btn">
+      <button class="fullscreen-btn test-btn winter-btn" id="finish-btn">
         <i class="fas fa-check"></i> Завершить
       </button>
     </div>
     
     <!-- Состояние 2: Работа принята (после нажатия "Завершить") -->
-    <div class="fullscreen-content work-accepted" id="accepted-screen" style="display: none;">
+    <div class="fullscreen-content work-accepted winter-fullscreen" id="accepted-screen" style="display: none;">
       <div class="accepted-icon">
         <i class="fas fa-check-circle"></i>
       </div>
-      <div class="accepted-message">Ваша работа принята!</div>
+      <div class="accepted-message winter-accepted-message">Ваша работа принята!</div>
       <div style="margin: 30px 0; text-align: left; max-width: 400px;">
         <div style="margin-bottom: 15px; font-size: 18px; color: #333;">
           <strong>Результаты теста:</strong>
@@ -101,7 +111,7 @@
           <!-- Детализация результатов -->
         </div>
       </div>
-      <div class="timer-message" id="timer-message">
+      <div class="timer-message winter-timer-message" id="timer-message">
         Через 8 секунд вы будете перенаправлены на главную страницу...
       </div>
     </div>
@@ -109,26 +119,26 @@
 
   <!-- Античит система -->
   <div class="blocker-overlay" id="blockerOverlay"></div>
-  <div class="anticheat-modal" id="anticheatModal">
+  <div class="anticheat-modal winter-anticheat" id="anticheatModal">
     <div class="anticheat-title">🚨 АНТИЖУЛЬНИЧАТЕЛЬНЫЙ РЕЖИМ 🚨</div>
     <div class="anticheat-message" id="cheatMessage"></div>
     <div class="anticheat-timer" id="countdownTimer">03:00</div>
     <div class="password-input-container">
       <div class="password-label">Введите пароль для продолжения:</div>
-      <input type="text" class="password-input" id="passwordInput" 
+      <input type="text" class="password-input winter-password-input" id="passwordInput" 
              maxlength="4" inputmode="numeric" placeholder="0000">
     </div>
-    <button class="continue-btn" id="continueBtn" disabled>Продолжить тест</button>
+    <button class="continue-btn winter-continue-btn" id="continueBtn" disabled>Продолжить тест</button>
   </div>
 
-  <!-- Радио система для тестовой страницы -->
+  <!-- Радио система для тестовой страницы (перенесена влево) -->
   <audio id="radioPlayer" crossorigin="anonymous" preload="none"></audio>
   
-  <div class="radio-mini" id="radioMini" title="Радио Зайцев.FM - Нажмите для управления">
+  <div class="radio-mini winter-radio-mini" id="radioMini" title="Радио Зайцев.FM - Нажмите для управления">
     📻
   </div>
   
-  <div class="radio-panel" id="radioPanel">
+  <div class="radio-panel winter-radio-panel" id="radioPanel">
     <div class="station-info">
       <div class="station-name" id="currentStationName">
         <span id="radioIconMini">📻</span>
@@ -141,15 +151,15 @@
     </div>
     
     <div class="radio-controls">
-      <button class="radio-btn" id="prevBtn" title="Предыдущая станция">⏮</button>
-      <button class="radio-btn" id="playPauseBtn" title="Воспроизведение/Пауза">▶</button>
-      <button class="radio-btn" id="nextBtn" title="Следующая станция">⏭</button>
+      <button class="radio-btn winter-radio-btn" id="prevBtn" title="Предыдущая станция">⏮</button>
+      <button class="radio-btn winter-radio-btn" id="playPauseBtn" title="Воспроизведение/Пауза">▶</button>
+      <button class="radio-btn winter-radio-btn" id="nextBtn" title="Следующая станция">⏭</button>
     </div>
     
     <div class="volume-control">
-      <span class="volume-icon" id="volumeIcon" title="Включить/выключить звук">🔊</span>
-      <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="30">
-      <span class="volume-value" id="volumeValue">30%</span>
+      <span class="volume-icon winter-volume-icon" id="volumeIcon" title="Включить/выключить звук">🔊</span>
+      <input type="range" class="volume-slider winter-volume-slider" id="volumeSlider" min="0" max="100" value="30">
+      <span class="volume-value winter-volume-value" id="volumeValue">30%</span>
     </div>
     
     <div class="station-list" id="stationList"></div>
@@ -256,6 +266,19 @@
     document.addEventListener('DOMContentLoaded', function() {
       console.log('📚 Система тестирования загружена, ожидаем тест...');
       
+      // Инициализируем снег на странице теста
+      if (typeof createSnowflakesCSS === 'function') {
+        createSnowflakesCSS();
+      }
+      
+      if (typeof initSnow === 'function') {
+        initSnow();
+      }
+      
+      if (typeof animateSnow === 'function') {
+        animateSnow();
+      }
+      
       // Добавляем глобальную функцию для переключения на экран "Работа принята"
       window.showWorkAcceptedScreen = function(grade, score, maxScore, breakdown) {
         // Переключаем экраны
@@ -281,6 +304,13 @@
           }
         }, 1000);
       };
+      
+      // Обработчик ресайза для снега
+      window.addEventListener('resize', function() {
+        if (typeof initSnow === 'function') {
+          initSnow();
+        }
+      });
     });
   </script>
 </body>
