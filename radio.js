@@ -443,53 +443,55 @@
 // ============ СНЕЖНЫЙ CANVAS ============
 let snowCanvas, snowflakes = [], snowflakeCount = 150;
 
-class Snowflake {
+// Оптимизированный класс Snowflake
+class OptimizedSnowflake {
     constructor() {
         this.x = Math.random() * (snowCanvas ? snowCanvas.width : window.innerWidth);
         this.y = Math.random() * -100;
-        this.size = Math.random() * 3 + 1;
-        this.speed = Math.random() * 1.5 + 0.5;
-        this.wind = Math.random() * 0.5 - 0.25;
-        this.opacity = Math.random() * 0.6 + 0.4;
-        this.wobble = Math.random() * Math.PI * 2;
-        this.wobbleSpeed = Math.random() * 0.05;
-        this.wobbleAmount = Math.random() * 2;
+        this.size = Math.random() * 2 + 1; // Меньший размер для производительности
+        this.speed = Math.random() * 1 + 0.5; // Медленнее
+        this.wind = Math.random() * 0.3 - 0.15; // Меньше ветра
+        this.opacity = Math.random() * 0.5 + 0.3; // Более прозрачный
+        // Убираем сложные вычисления для производительности
     }
     
     update() {
         this.y += this.speed;
-        this.x += this.wind + Math.sin(this.wobble) * this.wobbleAmount * 0.1;
-        this.wobble += this.wobbleSpeed;
+        this.x += this.wind;
         
+        // Упрощенная логика перерождения
         if (this.y > (snowCanvas ? snowCanvas.height : window.innerHeight)) {
             this.y = -10;
             this.x = Math.random() * (snowCanvas ? snowCanvas.width : window.innerWidth);
         }
-        
-        if (this.x > (snowCanvas ? snowCanvas.width : window.innerWidth) + 10) this.x = -10;
-        if (this.x < -10) this.x = (snowCanvas ? snowCanvas.width : window.innerWidth) + 10;
     }
     
     draw(ctx) {
+        // Упрощенная отрисовка без градиентов
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        
-        const gradient = ctx.createRadialGradient(
-            this.x, this.y, 0,
-            this.x, this.y, this.size * 2
-        );
-        gradient.addColorStop(0, `rgba(255, 255, 255, ${this.opacity})`);
-        gradient.addColorStop(1, `rgba(255, 255, 255, 0)`);
-        
-        ctx.fillStyle = gradient;
-        ctx.fill();
-        
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size * 1.5, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity * 0.2})`;
+        ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
         ctx.fill();
     }
 }
+
+// Функция для получения количества снежинок с учетом настроек
+window.getSnowflakeCount = function() {
+    const effectsEnabled = localStorage.getItem('effectsEnabled') !== 'false';
+    if (!effectsEnabled) return 0;
+    
+    // Адаптивное количество снежинок в зависимости от устройства
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isTablet = window.innerWidth < 1024 && window.innerWidth >= 768;
+    
+    if (isMobile) {
+        return 50; // Меньше снежинок на мобильных
+    } else if (isTablet) {
+        return 80; // Для планшетов
+    } else {
+        return 150; // Для десктопов
+    }
+};
 
 // Глобальные функции для снега
 window.initSnow = function() {
@@ -504,8 +506,10 @@ window.initSnow = function() {
     snowCanvas.height = window.innerHeight;
     
     snowflakes = [];
+    snowflakeCount = window.getSnowflakeCount(); // Используем адаптивное количество
+    
     for (let i = 0; i < snowflakeCount; i++) {
-        snowflakes.push(new Snowflake());
+        snowflakes.push(new OptimizedSnowflake());
     }
 };
 
@@ -518,32 +522,46 @@ window.animateSnow = function() {
     const ctx = snowCanvas.getContext('2d');
     ctx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
     
+    // Прозрачный фон для снега
     ctx.fillStyle = 'rgba(26, 31, 53, 0.05)';
     ctx.fillRect(0, 0, snowCanvas.width, snowCanvas.height);
     
-    snowflakes.forEach(flake => {
-        flake.update();
-        flake.draw(ctx);
-    });
+    // Отрисовка только если снежинки есть
+    if (snowflakes.length > 0) {
+        snowflakes.forEach(flake => {
+            flake.update();
+            flake.draw(ctx);
+        });
+    }
     
     requestAnimationFrame(window.animateSnow);
 };
 
-// Снежинки на CSS
+// Снежинки на CSS (оптимизированные)
 window.createSnowflakesCSS = function() {
     const snowflakesContainer = document.getElementById('snowflakes');
     if (!snowflakesContainer) return;
     
-    const snowflakeCount = 70;
+    const snowflakeCount = Math.floor(window.getSnowflakeCount() * 0.5); // Меньше CSS снежинок
+    const effectsEnabled = localStorage.getItem('effectsEnabled') !== 'false';
+    
+    // Очищаем существующие снежинки
+    snowflakesContainer.innerHTML = '';
+    
+    // Если эффекты отключены, не создаем снежинки
+    if (!effectsEnabled) return;
     
     for (let i = 0; i < snowflakeCount; i++) {
         const snowflake = document.createElement('div');
         snowflake.classList.add('snowflake');
         
-        const size = Math.random() * 6 + 2;
+        // Используем более легкие анимации на мобильных
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        const size = Math.random() * (isMobile ? 4 : 6) + 2;
         const left = Math.random() * 100;
         const opacity = Math.random() * 0.7 + 0.3;
-        const duration = Math.random() * 20 + 10;
+        const duration = Math.random() * (isMobile ? 15 : 20) + 10;
         const delay = Math.random() * 10;
         
         snowflake.style.width = `${size}px`;
@@ -552,6 +570,11 @@ window.createSnowflakesCSS = function() {
         snowflake.style.opacity = opacity;
         snowflake.style.animationDuration = `${duration}s`;
         snowflake.style.animationDelay = `${delay}s`;
+        
+        // Отключаем анимацию на устройствах с низкой производительностью
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            snowflake.style.animation = 'none';
+        }
         
         snowflakesContainer.appendChild(snowflake);
     }

@@ -282,18 +282,30 @@
     document.addEventListener('DOMContentLoaded', function() {
       console.log('📚 Система тестирования загружена, ожидаем тест...');
       
-      // Инициализируем снег на странице теста
-      if (typeof createSnowflakesCSS === 'function') {
-        createSnowflakesCSS();
+      // Проверяем состояние эффектов из localStorage
+      const effectsEnabled = localStorage.getItem('effectsEnabled') !== 'false';
+      
+      // Инициализируем снег только если эффекты включены
+      if (effectsEnabled) {
+        if (typeof createSnowflakesCSS === 'function') {
+          createSnowflakesCSS();
+        }
+        
+        if (typeof initSnow === 'function') {
+          initSnow();
+        }
+        
+        if (typeof animateSnow === 'function') {
+          animateSnow();
+        }
       }
       
-      if (typeof initSnow === 'function') {
-        initSnow();
-      }
-      
-      if (typeof animateSnow === 'function') {
-        animateSnow();
-      }
+      // Обработчик ресайза для снега (только если эффекты включены)
+      window.addEventListener('resize', function() {
+        if (effectsEnabled && typeof initSnow === 'function') {
+          initSnow();
+        }
+      });
       
       // Добавляем глобальную функцию для переключения на экран "Работа принята"
       window.showWorkAcceptedScreen = function(grade, score, maxScore, breakdown) {
@@ -320,13 +332,6 @@
           }
         }, 1000);
       };
-      
-      // Обработчик ресайза для снега
-      window.addEventListener('resize', function() {
-        if (typeof initSnow === 'function') {
-          initSnow();
-        }
-      });
     });
   </script>
 </body>
