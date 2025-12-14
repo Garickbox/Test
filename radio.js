@@ -440,12 +440,12 @@
     });
 })();
 
-// ============ СНЕЖНЫЙ CANVAS (только для index.html) ============
+// ============ СНЕЖНЫЙ CANVAS ============
 let snowCanvas, snowflakes = [], snowflakeCount = 150;
 
 class Snowflake {
     constructor() {
-        this.x = Math.random() * snowCanvas.width;
+        this.x = Math.random() * (snowCanvas ? snowCanvas.width : window.innerWidth);
         this.y = Math.random() * -100;
         this.size = Math.random() * 3 + 1;
         this.speed = Math.random() * 1.5 + 0.5;
@@ -461,13 +461,13 @@ class Snowflake {
         this.x += this.wind + Math.sin(this.wobble) * this.wobbleAmount * 0.1;
         this.wobble += this.wobbleSpeed;
         
-        if (this.y > snowCanvas.height) {
+        if (this.y > (snowCanvas ? snowCanvas.height : window.innerHeight)) {
             this.y = -10;
-            this.x = Math.random() * snowCanvas.width;
+            this.x = Math.random() * (snowCanvas ? snowCanvas.width : window.innerWidth);
         }
         
-        if (this.x > snowCanvas.width + 10) this.x = -10;
-        if (this.x < -10) this.x = snowCanvas.width + 10;
+        if (this.x > (snowCanvas ? snowCanvas.width : window.innerWidth) + 10) this.x = -10;
+        if (this.x < -10) this.x = (snowCanvas ? snowCanvas.width : window.innerWidth) + 10;
     }
     
     draw(ctx) {
@@ -491,9 +491,13 @@ class Snowflake {
     }
 }
 
-function initSnow() {
+// Глобальные функции для снега
+window.initSnow = function() {
     snowCanvas = document.getElementById('snowCanvas');
-    if (!snowCanvas) return;
+    if (!snowCanvas) {
+        console.log("Canvas для снега не найден");
+        return;
+    }
     
     const ctx = snowCanvas.getContext('2d');
     snowCanvas.width = window.innerWidth;
@@ -503,28 +507,30 @@ function initSnow() {
     for (let i = 0; i < snowflakeCount; i++) {
         snowflakes.push(new Snowflake());
     }
-}
+};
 
-function animateSnow() {
-    const canvas = document.getElementById('snowCanvas');
-    if (!canvas) return;
+window.animateSnow = function() {
+    if (!snowCanvas) {
+        console.log("Canvas для снега не инициализирован");
+        return;
+    }
     
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const ctx = snowCanvas.getContext('2d');
+    ctx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
     
     ctx.fillStyle = 'rgba(26, 31, 53, 0.05)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, snowCanvas.width, snowCanvas.height);
     
     snowflakes.forEach(flake => {
         flake.update();
         flake.draw(ctx);
     });
     
-    requestAnimationFrame(animateSnow);
-}
+    requestAnimationFrame(window.animateSnow);
+};
 
 // Снежинки на CSS
-function createSnowflakesCSS() {
+window.createSnowflakesCSS = function() {
     const snowflakesContainer = document.getElementById('snowflakes');
     if (!snowflakesContainer) return;
     
@@ -549,4 +555,4 @@ function createSnowflakesCSS() {
         
         snowflakesContainer.appendChild(snowflake);
     }
-}
+};

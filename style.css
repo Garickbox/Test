@@ -643,12 +643,13 @@ body.index-body {
 
 /* ============ СТИЛИ ДЛЯ TEST.HTML ============ */
 body.test-body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
     background: linear-gradient(135deg, #1e93c4 0%, #38a1d6 100%);
     color: #333;
     line-height: 1.5;
     min-height: 100vh;
     padding: 10px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    margin: 0;
 }
 
 /* Общие стили в стиле Telegram */
@@ -664,19 +665,29 @@ body.test-body {
 .telegram-header {
     background: linear-gradient(135deg, #1e93c4 0%, #38a1d6 100%);
     color: white;
-    text-align: center;
     padding: 20px;
     margin-bottom: 0;
     font-size: 22px;
     font-weight: 600;
+    text-align: center;
 }
 
-.test-section {
+.telegram-header h1 {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0;
+    padding: 0;
+    color: white;
+    background: none;
+    text-align: center;
+}
+
+.section {
     padding: 20px;
     border-bottom: 1px solid #e6e6e6;
 }
 
-.test-section:last-child {
+.section:last-child {
     border-bottom: none;
 }
 
@@ -839,12 +850,6 @@ body.test-body {
     margin-right: 12px;
     transform: scale(1.3);
     accent-color: #1e93c4;
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.02); }
-    100% { transform: scale(1); }
 }
 
 /* Кнопки */
@@ -1220,8 +1225,12 @@ body.test-body {
         font-size: 20px;
         padding: 18px;
     }
+    
+    .telegram-header h1 {
+        font-size: 20px;
+    }
 
-    .test-section {
+    .section {
         padding: 16px;
     }
 
@@ -1273,4 +1282,50 @@ body.test-body {
     padding: 16px;
     margin: 10px 0;
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+@media (max-width: 480px) {
+    body.index-body {
+        padding: 10px;
+    }
+    
+    .container {
+        border-radius: 15px;
+    }
+    
+    .header {
+        padding: 25px 20px;
+    }
+    
+    .content {
+        padding: 30px 20px;
+    }
+    
+    .welcome-title {
+        font-size: 24px;
+    }
+    
+    .welcome-title::before,
+    .welcome-title::after {
+        display: none;
+    }
+    
+    .radio-mini {
+        bottom: 15px;
+        right: 15px;
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+    }
+    
+    .radio-panel {
+        bottom: 70px;
+        right: 15px;
+        min-width: 180px;
+        padding: 15px;
+    }
+    
+    .test-body {
+        padding: 5px;
+    }
 }
