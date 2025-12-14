@@ -34,9 +34,7 @@ class StudentIdentification {
               <div id="welcome-student-info" class="welcome-student-info">
                 <!-- Информация об ученике будет здесь -->
               </div>
-              <p class="welcome-message">
-                Вы можете начать тест или выбрать другого пользователя
-              </p>
+              <p class="welcome-message"></p>
             </div>
           </div>
           
