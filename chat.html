@@ -972,6 +972,24 @@
             .modal {
                 width: 95%;
                 max-height: 90vh;
+                margin: 10px;
+            }
+            
+            .modal-body {
+                padding: var(--space-md);
+                max-height: calc(90vh - 140px);
+            }
+            
+            .modal-header {
+                padding: var(--space-md);
+            }
+            
+            .modal-actions {
+                padding: var(--space-md);
+            }
+            
+            .modal-section {
+                margin-bottom: var(--space-lg);
             }
         }
 
@@ -994,6 +1012,31 @@
             .theme-options,
             .font-options {
                 grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .modal {
+                max-height: 85vh;
+                width: 98%;
+                margin: 5px;
+            }
+            
+            .modal-body {
+                max-height: calc(85vh - 120px);
+                padding: var(--space-sm);
+            }
+            
+            .modal-header {
+                padding: var(--space-sm);
+            }
+            
+            .section-title {
+                margin-bottom: var(--space-md);
+                font-size: var(--font-size-small);
+            }
+            
+            .font-option,
+            .theme-option {
+                padding: var(--space-sm);
             }
         }
     </style>
