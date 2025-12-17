@@ -396,11 +396,16 @@
             const chatMini = document.getElementById('chatMini');
             const chatBadge = document.getElementById('chatBadge');
             
+            // Инициализируем время последней проверки
+            if (!localStorage.getItem('chatLastCheck')) {
+                localStorage.setItem('chatLastCheck', Date.now().toString());
+            }
+            
             // Загружаем количество непрочитанных сообщений
-            let unreadCount = localStorage.getItem('chatUnreadCount') || 0;
+            let unreadCount = parseInt(localStorage.getItem('chatUnreadCount')) || 0;
             updateBadge(unreadCount);
             
-            // Открытие чата по клику
+            // Открытие чата в ТОЙ ЖЕ вкладке
             chatMini.addEventListener('click', function() {
                 openChatWindow();
             });
@@ -416,37 +421,18 @@
                 }
             }
             
-            // Функция открытия окна чата
+            // Функция открытия окна чата в ТОЙ ЖЕ вкладке
             function openChatWindow() {
+                // Сохраняем текущее время как время последнего просмотра
+                localStorage.setItem('chatLastView', Date.now().toString());
+                
                 // Сбрасываем счетчик при открытии
                 unreadCount = 0;
                 localStorage.setItem('chatUnreadCount', 0);
                 updateBadge(0);
                 
-                // Открываем чат в новом окне
-                const width = 800;
-                const height = 600;
-                const left = (window.screen.width - width) / 2;
-                const top = (window.screen.height - height) / 2;
-                
-                const chatWindow = window.open(
-                    'chat.html',
-                    'schoolChat',
-                    `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
-                );
-                
-                if (chatWindow) {
-                    chatWindow.focus();
-                    
-                    // Проверяем состояние окна каждые 5 секунд
-                    const checkInterval = setInterval(() => {
-                        if (chatWindow.closed) {
-                            clearInterval(checkInterval);
-                            // При закрытии чата проверяем, не появились ли новые сообщения
-                            checkUnreadMessages();
-                        }
-                    }, 5000);
-                }
+                // Открываем чат в ТОЙ ЖЕ вкладке
+                window.location.href = 'chat.html';
             }
             
             // Функция проверки непрочитанных сообщений
@@ -457,13 +443,17 @@
                     if (!savedStudent) return;
                     
                     const student = JSON.parse(savedStudent);
-                    const lastReadTime = localStorage.getItem('chatLastReadTime') || Date.now();
+                    // Получаем время последней проверки
+                    const lastCheckTime = parseInt(localStorage.getItem('chatLastCheck')) || Date.now();
+                    
+                    // Сохраняем время начала проверки
+                    const checkStartTime = Date.now();
                     
                     // Проверяем общий чат
                     const generalQuery = await db.collection('chats')
                         .doc('general')
                         .collection('messages')
-                        .where('timestamp', '>', parseInt(lastReadTime))
+                        .where('timestamp', '>', lastCheckTime)
                         .get();
                     
                     let newCount = generalQuery.size;
@@ -475,7 +465,7 @@
                             const classQuery = await db.collection('chats')
                                 .doc(className)
                                 .collection('messages')
-                                .where('timestamp', '>', parseInt(lastReadTime))
+                                .where('timestamp', '>', lastCheckTime)
                                 .get();
                             newCount += classQuery.size;
                         }
@@ -483,21 +473,74 @@
                         const classQuery = await db.collection('chats')
                             .doc(student.class.toString())
                             .collection('messages')
-                            .where('timestamp', '>', parseInt(lastReadTime))
+                            .where('timestamp', '>', lastCheckTime)
                             .get();
                         newCount += classQuery.size;
                     }
                     
+                    // Учитываем только сообщения не от текущего пользователя
                     if (newCount > 0) {
-                        unreadCount = newCount;
-                        localStorage.setItem('chatUnreadCount', newCount);
-                        updateBadge(newCount);
+                        // Фильтруем сообщения от самого себя
+                        let filteredCount = 0;
+                        
+                        // Проверяем общий чат
+                        generalQuery.forEach(doc => {
+                            const message = doc.data();
+                            if (message.userId !== student.id && message.name !== student.name) {
+                                filteredCount++;
+                            }
+                        });
+                        
+                        // Проверяем чаты классов
+                        if (student.isAdmin) {
+                            const classes = ['7', '8', '9', '10', '11'];
+                            for (const className of classes) {
+                                const classQuery = await db.collection('chats')
+                                    .doc(className)
+                                    .collection('messages')
+                                    .where('timestamp', '>', lastCheckTime)
+                                    .get();
+                                    
+                                classQuery.forEach(doc => {
+                                    const message = doc.data();
+                                    if (message.userId !== student.id && message.name !== student.name) {
+                                        filteredCount++;
+                                    }
+                                });
+                            }
+                        } else {
+                            const classQuery = await db.collection('chats')
+                                .doc(student.class.toString())
+                                .collection('messages')
+                                .where('timestamp', '>', lastCheckTime)
+                                .get();
+                                
+                            classQuery.forEach(doc => {
+                                const message = doc.data();
+                                if (message.userId !== student.id && message.name !== student.name) {
+                                    filteredCount++;
+                                }
+                            });
+                        }
+                        
+                        newCount = filteredCount;
+                    }
+                    
+                    // Обновляем счетчик если есть новые сообщения
+                    if (newCount > 0) {
+                        unreadCount += newCount;
+                        localStorage.setItem('chatUnreadCount', unreadCount);
+                        updateBadge(unreadCount);
                         
                         // Показываем уведомление, если страница не в фокусе
                         if (document.hidden && newCount > 0) {
                             showNotification(newCount);
                         }
                     }
+                    
+                    // Обновляем время последней проверки
+                    localStorage.setItem('chatLastCheck', checkStartTime.toString());
+                    
                 } catch (error) {
                     console.error('Ошибка проверки сообщений:', error);
                 }
@@ -505,6 +548,21 @@
             
             // Функция показа уведомления
             function showNotification(count) {
+                // Только если разрешены уведомления
+                if (Notification.permission === "granted") {
+                    const notification = new Notification("Новые сообщения в чате", {
+                        body: `У вас ${count} нов${count === 1 ? 'ое' : 'ых'} сообщени${count === 1 ? 'е' : 'я'}`,
+                        icon: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/comments.svg"
+                    });
+                    
+                    notification.onclick = function() {
+                        window.focus();
+                        openChatWindow();
+                    };
+                } else if (Notification.permission !== "denied") {
+                    Notification.requestPermission();
+                }
+                
                 // Создаем звук уведомления
                 const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==');
                 audio.volume = 0.3;
@@ -512,11 +570,13 @@
                 
                 // Обновляем заголовок вкладки
                 const originalTitle = document.title;
-                document.title = `(${count}) ${originalTitle}`;
-                
-                setTimeout(() => {
-                    document.title = originalTitle;
-                }, 3000);
+                if (!document.title.includes('(')) {
+                    document.title = `(${count}) ${originalTitle}`;
+                    
+                    setTimeout(() => {
+                        document.title = originalTitle;
+                    }, 3000);
+                }
             }
             
             // Проверяем новые сообщения каждые 30 секунд
@@ -529,7 +589,7 @@
                 }
             });
             
-            // Изначальная проверка
+            // Изначальная проверка через 3 секунды после загрузки
             setTimeout(checkUnreadMessages, 3000);
             
             // Проверяем на администратора и добавляем кнопку админа
@@ -542,7 +602,6 @@
                             // Создаем кнопку администратора чата
                             const adminButton = document.createElement('a');
                             adminButton.href = 'admin-chat-tools.html';
-                            adminButton.target = '_blank';
                             adminButton.className = 'admin-chat-button';
                             adminButton.innerHTML = '<i class="fas fa-user-shield"></i>';
                             adminButton.title = 'Инструменты администратора чата';
@@ -564,6 +623,13 @@
                     }
                 }
             }, 2000);
+            
+            // Запрашиваем разрешение на уведомления
+            if ('Notification' in window && Notification.permission === 'default') {
+                setTimeout(() => {
+                    Notification.requestPermission();
+                }, 5000);
+            }
         }
     </script>
 </body>
