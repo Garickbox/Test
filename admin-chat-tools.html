@@ -287,33 +287,260 @@
             background: #e74c3c;
         }
         
-        /* Стиль для мобильных устройств */
+        /* Адаптивность для мобильных устройств - ОБНОВЛЕНО */
         @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
             .admin-container {
                 border-radius: 10px;
+                margin: 0;
+            }
+            
+            .admin-header {
+                padding: 20px 15px;
+            }
+            
+            .admin-header h1 {
+                font-size: 22px;
+            }
+            
+            .admin-header p {
+                font-size: 14px;
             }
             
             .admin-nav {
-                flex-direction: column;
+                flex-direction: row;
+                overflow-x: auto;
+                white-space: nowrap;
+                padding: 0;
             }
             
             .nav-tab {
-                text-align: left;
+                padding: 12px 15px;
+                font-size: 14px;
+                flex-shrink: 0;
+            }
+            
+            .tab-content {
+                padding: 15px;
+                min-height: 400px;
+            }
+            
+            .chat-selector {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+            
+            .chat-selector h3 {
+                font-size: 16px;
+            }
+            
+            .chat-buttons {
+                gap: 8px;
+            }
+            
+            .chat-btn {
+                padding: 8px 12px;
+                font-size: 13px;
+                flex: 1 0 calc(33.333% - 8px);
+                text-align: center;
+            }
+            
+            .search-box {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+            
+            .messages-container {
+                max-height: 500px;
+                margin-top: 15px;
             }
             
             .message-item {
+                padding: 12px;
                 flex-direction: column;
+                gap: 10px;
+            }
+            
+            .message-header {
+                flex-wrap: wrap;
+                gap: 5px;
+                margin-bottom: 8px;
+            }
+            
+            .user-name {
+                font-size: 14px;
+            }
+            
+            .user-class {
+                font-size: 11px;
+                padding: 1px 6px;
+            }
+            
+            .message-time {
+                font-size: 11px;
+                margin-left: auto;
+            }
+            
+            .message-text {
+                font-size: 14px;
+                line-height: 1.4;
+                margin-bottom: 8px;
             }
             
             .message-actions {
-                margin-top: 10px;
                 opacity: 1;
                 width: 100%;
                 justify-content: flex-end;
             }
             
+            .action-btn {
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+            
+            .stats-container {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .stat-card {
+                padding: 20px;
+            }
+            
+            .stat-number {
+                font-size: 28px;
+            }
+            
+            .stat-label {
+                font-size: 14px;
+            }
+            
+            .status-bar {
+                bottom: 10px;
+                right: 10px;
+                left: 10px;
+                text-align: center;
+                padding: 10px 15px;
+                font-size: 14px;
+                border-radius: 15px;
+            }
+            
+            /* Кнопка проверки подключения */
+            #testConnection {
+                padding: 10px 15px;
+                font-size: 14px;
+                width: 100%;
+                margin-bottom: 8px;
+            }
+            
+            #connectionStatus {
+                display: block;
+                text-align: center;
+                margin-left: 0;
+                margin-top: 5px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .admin-header h1 {
+                font-size: 20px;
+            }
+            
+            .admin-header p {
+                font-size: 13px;
+            }
+            
+            .nav-tab {
+                padding: 10px 12px;
+                font-size: 13px;
+            }
+            
+            .tab-content {
+                padding: 12px;
+            }
+            
+            .chat-selector {
+                padding: 12px;
+            }
+            
             .chat-buttons {
+                gap: 6px;
+            }
+            
+            .chat-btn {
+                padding: 6px 8px;
+                font-size: 12px;
+                flex: 1 0 calc(50% - 6px);
+            }
+            
+            .search-box {
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+            
+            .message-item {
+                padding: 10px;
+            }
+            
+            .message-header {
                 flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+            
+            .message-time {
+                margin-left: 0;
+                font-size: 11px;
+            }
+            
+            .message-actions {
+                justify-content: stretch;
+            }
+            
+            .action-btn {
+                flex: 1;
+                text-align: center;
+            }
+            
+            .stat-card {
+                padding: 15px;
+            }
+            
+            .stat-number {
+                font-size: 24px;
+            }
+            
+            .stat-label {
+                font-size: 13px;
+            }
+        }
+        
+        /* Дополнительные улучшения для очень маленьких экранов */
+        @media (max-width: 360px) {
+            .chat-buttons {
+                gap: 4px;
+            }
+            
+            .chat-btn {
+                padding: 5px 6px;
+                font-size: 11px;
+                flex: 1 0 calc(50% - 4px);
+            }
+            
+            .message-header {
+                font-size: 12px;
+            }
+            
+            .message-text {
+                font-size: 13px;
+            }
+            
+            .action-btn {
+                padding: 6px 8px;
+                font-size: 12px;
             }
         }
     </style>
