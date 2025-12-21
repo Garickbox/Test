@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генератор ВКР с AI - Школа №25</title>
+    <!-- Подключение необходимых библиотек -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/docx@7.8.0/build/index.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&display=swap');
+        
+        /* Кастомные стили */
+        :root {
+            --amber-50: #fffbeb;
+            --amber-600: #d97706;
+            --amber-700: #b45309;
+            --amber-800: #92400e;
+            --amber-gradient: linear-gradient(135deg, #d97706 0%, #ea580c 100%);
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(209, 213, 219, 0.3);
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+        }
+        
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+        }
+        
+        .amber-btn {
+            background: var(--amber-gradient);
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .amber-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(217, 119, 6, 0.3);
+        }
+        
+        .status-bar {
+            background: linear-gradient(90deg, #d97706 0%, #ea580c 50%, #f59e0b 100%);
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+        
+        .typing-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 20px;
+            background: var(--amber-600);
+            margin-left: 4px;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
+        .preview-paper {
+            background: white;
+            font-family: 'Merriweather', serif;
+            line-height: 1.5;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .preview-paper h1, .preview-paper h2 {
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .model-switch {
+            background: linear-gradient(90deg, #10b981 0%, #3b82f6 100%);
+        }
+        
+        .model-switch .slider {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-6">
+    <div class="max-w-7xl mx-auto">
+        <!-- Заголовок -->
+        <header class="mb-8">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="p-3 rounded-full bg-gradient-to-br from-amber-500 to-orange-500">
+                        <i class="fas fa-graduation-cap text-white text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-800">Конструктор ВКР</h1>
+                        <p class="text-gray-600">Школа №25 - Генератор выпускных квалификационных работ</p>
+                    </div>
+                </div>
+                <div class="text-sm text-gray-500">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                        <span>AI API: Gemini 3.0</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex flex-col lg:flex-row gap-6">
+            <!-- Боковая панель настроек -->
+            <div class="lg:w-1/3">
+                <div class="glass-panel p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                        <i class="fas fa-cogs mr-2 text-amber-600"></i> Настройки документа
+                    </h2>
+
+                    <!-- Блок: Основа документа -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">Основа документа</h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Предмет</label>
+                                <select id="subject" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-transparent">
+                                    <option value="informatics">Информатика</option>
+                                    <option value="physics">Физика</option>
+                                    <option value="mathematics">Математика</option>
+                                    <option value="history">История</option>
+                                    <option value="literature">Литература</option>
+                                    <option value="biology">Биология</option>
+                                    <option value="chemistry">Химия</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Класс</label>
+                                <select id="grade" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-transparent">
+                                    <option value="9">9 класс</option>
+                                    <option value="10">10 класс</option>
+                                    <option value="11" selected>11 класс</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Тема работы</label>
+                                <div class="flex space-x-2">
+                                    <input type="text" id="topic" placeholder="Введите тему выпускной работы" 
+                                           class="flex-1 p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                                           value="Использование искусственного интеллекта в современном образовании">
+                                    <button id="btnTopics" class="p-3 rounded-lg bg-gray-100 hover:bg-gray-200 transition">
+                                        <i class="fas fa-list text-gray-600"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">ФИО студента</label>
+                                <input type="text" id="studentName" placeholder="Иванов Иван Иванович" 
+                                       class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-transparent">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Блок: Настройки ВКР -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">Настройки ВКР</h3>
+                        
+                        <!-- Переключатель модели AI -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Модель AI</label>
+                            <div class="relative model-switch h-12 rounded-full p-1 cursor-pointer" id="modelSwitch">
+                                <div class="slider absolute top-1 left-1 w-1/2 h-10 bg-white rounded-full shadow-lg" style="transform: translateX(0);"></div>
+                                <div class="relative flex h-10">
+                                    <div class="flex-1 flex items-center justify-center text-white font-medium z-10" data-model="flash">
+                                        <i class="fas fa-bolt mr-2"></i> Flash
+                                    </div>
+                                    <div class="flex-1 flex items-center justify-center text-white font-medium z-10" data-model="pro">
+                                        <i class="fas fa-brain mr-2"></i> Pro
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>Быстрая генерация</span>
+                                <span>Глубокая проработка</span>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Цель работы</label>
+                                <input type="text" id="vkrGoal" placeholder="Сформулируйте главную цель исследования" 
+                                       class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                                       value="Разработка методологии использования ИИ для персонализированного обучения">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Задачи исследования</label>
+                                <textarea id="vkrTasks" rows="3" placeholder="Каждая задача с новой строки"
+                                          class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-transparent">1. Проанализировать современные тенденции использования ИИ в образовании
+2. Изучить существующие платформы и инструменты
+3. Разработать модель персонализированного обучения
+4. Провести апробацию модели на практике</textarea>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Группа / Класс</label>
+                                <input type="text" id="vkrGroup" placeholder="11-А" 
+                                       class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-transparent">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Общий объем (слов)</label>
+                                <input type="range" id="wordCount" min="1000" max="10000" value="5000" step="500"
+                                       class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-amber-600">
+                                <div class="flex justify-between text-sm text-gray-600">
+                                    <span>1,000</span>
+                                    <span id="wordCountValue">5,000</span>
+                                    <span>10,000</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Кнопка генерации -->
+                    <button id="btnGenerate" class="w-full py-4 rounded-xl amber-btn text-lg font-bold flex items-center justify-center">
+                        <i class="fas fa-bolt mr-3 animate-pulse"></i>
+                        СФОРМИРОВАТЬ ВКР
+                    </button>
+                    
+                    <div class="mt-4 text-sm text-gray-500 text-center">
+                        <i class="fas fa-shield-alt mr-1"></i>
+                        Все данные сохраняются локально в вашем браузере
+                    </div>
+                </div>
+                
+                <!-- Информация о токенах -->
+                <div class="glass-panel p-4 mt-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <div class="text-sm font-medium text-gray-700">Расход токенов</div>
+                            <div class="text-2xl font-bold text-amber-600">~2,400</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-sm font-medium text-gray-700">Время генерации</div>
+                            <div class="text-2xl font-bold text-gray-800">45с</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Основная рабочая область -->
+            <div class="lg:w-2/3">
+                <!-- Статус-бар генерации -->
+                <div id="statusBar" class="glass-panel p-4 mb-6 hidden">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-3 h-3 rounded-full bg-amber-500 animate-pulse"></div>
+                            <span class="font-bold text-gray-800">System Init: VKR_GEN v1.3.0</span>
+                        </div>
+                        <div class="text-sm font-medium text-gray-600">
+                            <i class="fas fa-brain mr-1"></i>
+                            <span id="currentModel">Gemini 3.0 Pro</span>
+                        </div>
+                    </div>
+                    
+                    <div class="status-bar h-2 rounded-full mb-2"></div>
+                    
+                    <div id="statusLogs" class="font-mono text-sm text-gray-700 space-y-1">
+                        <div>> Инициализация модуля ВКР...</div>
+                    </div>
+                </div>
+
+                <!-- Панель управления выводом -->
+                <div class="glass-panel p-4 mb-6">
+                    <div class="flex flex-wrap items-center justify-between">
+                        <div class="flex space-x-2 mb-2 md:mb-0">
+                            <button id="btnEdit" class="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition font-medium">
+                                <i class="fas fa-edit mr-2"></i>Редактор
+                            </button>
+                            <button id="btnPreview" class="px-4 py-2 rounded-lg bg-amber-600 text-white font-medium">
+                                <i class="fas fa-eye mr-2"></i>Просмотр
+                            </button>
+                        </div>
+                        
+                        <div class="flex space-x-2">
+                            <button id="btnCopy" class="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition" title="Копировать">
+                                <i class="fas fa-copy text-gray-600"></i>
+                            </button>
+                            <button id="btnWord" class="p-2 rounded-lg bg-blue-100 hover:bg-blue-200 transition" title="Скачать DOCX">
+                                <i class="fas fa-file-word text-blue-600"></i>
+                            </button>
+                            <button id="btnPDF" class="p-2 rounded-lg bg-red-100 hover:bg-red-200 transition" title="Скачать PDF">
+                                <i class="fas fa-file-pdf text-red-600"></i>
+                            </button>
+                            <button id="btnPNG" class="p-2 rounded-lg bg-green-100 hover:bg-green-200 transition" title="Скачать PNG">
+                                <i class="fas fa-image text-green-600"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Область вывода -->
+                <div class="glass-panel p-0 overflow-hidden">
+                    <!-- Редактор (скрыт по умолчанию) -->
+                    <div id="editorView" class="hidden p-6">
+                        <textarea id="textEditor" class="w-full h-[600px] p-4 font-mono text-blue-300 bg-gray-900 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-none"></textarea>
+                    </div>
+                    
+                    <!-- Предпросмотр -->
+                    <div id="previewView" class="p-8 preview-paper min-h-[600px]">
+                        <div id="previewContent">
+                            <div class="text-center mb-12">
+                                <h1 class="text-3xl font-bold uppercase mb-4">Выпускная квалификационная работа</h1>
+                                <h2 class="text-2xl font-bold mb-6">по теме:</h2>
+                                <div class="text-xl italic border-b-2 border-amber-600 pb-4 inline-block px-8">
+                                    "Использование искусственного интеллекта в современном образовании"
+                                </div>
+                                <div class="mt-12 text-right">
+                                    <p class="text-lg">Выполнил: <span class="font-bold">Иванов И.И.</span></p>
+                                    <p class="text-lg">Группа: <span class="font-bold">11-А</span></p>
+                                    <p class="text-lg">Научный руководитель: к.п.н. Петрова А.В.</p>
+                                </div>
+                                <div class="mt-16 text-center">
+                                    <p class="text-xl">г. Москва, 2024</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Здесь будет сгенерированный контент -->
+                            <div id="aiContent" class="text-justify">
+                                <p class="text-center text-gray-500 mt-20">
+                                    Нажмите "СФОРМИРОВАТЬ ВКР" для генерации полного текста работы
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Модальное окно сохранения -->
+        <div id="saveModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="glass-panel p-6 w-96">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Сохранение файла</h3>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Имя файла</label>
+                    <input type="text" id="saveFilename" 
+                           class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-amber-500 focus:border-transparent">
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button id="btnCancelSave" class="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition">
+                        Отмена
+                    </button>
+                    <button id="btnConfirmSave" class="px-4 py-2 rounded-lg amber-btn">
+                        Сохранить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Основной JavaScript -->
+    <script>
+        // Конфигурация приложения
+        const config = {
+            apiKey: 'AIzaSyDr5PnuReo4tMj8Fh4oONfm0w9oKYR8pPE',
+            currentModel: 'gemini-1.5-pro', // Будет меняться в зависимости от переключателя
+            guidelines: {
+                fgos: "Стандарты ФГОС: работа должна содержать введение, теоретическую часть, практическую часть, заключение и библиографию.",
+                gost: "ГОСТ Р 7.0.100-2018: оформление списка литературы, нумерация страниц, требования к титульному листу.",
+                structure: "Объем распределения: 15% введение, 70% основная часть, 10% заключение, 5% аннотация."
+            },
+            diplomaSections: {
+                chapters: [
+                    { title: "Введение", wordCount: 750 },
+                    { title: "Теоретическая часть", wordCount: 2500 },
+                    { title: "Практическая часть", wordCount: 2500 },
+                    { title: "Заключение", wordCount: 500 },
+                    { title: "Библиография", wordCount: 250 }
+                ]
+            }
+        };
+
+        // Элементы DOM
+        const elements = {
+            // Кнопки
+            btnGenerate: document.getElementById('btnGenerate'),
+            btnEdit: document.getElementById('btnEdit'),
+            btnPreview: document.getElementById('btnPreview'),
+            btnCopy: document.getElementById('btnCopy'),
+            btnWord: document.getElementById('btnWord'),
+            btnPDF: document.getElementById('btnPDF'),
+            btnPNG: document.getElementById('btnPNG'),
+            btnTopics: document.getElementById('btnTopics'),
+            btnCancelSave: document.getElementById('btnCancelSave'),
+            btnConfirmSave: document.getElementById('btnConfirmSave'),
+            
+            // Поля ввода
+            subject: document.getElementById('subject'),
+            grade: document.getElementById('grade'),
+            topic: document.getElementById('topic'),
+            studentName: document.getElementById('studentName'),
+            vkrGoal: document.getElementById('vkrGoal'),
+            vkrTasks: document.getElementById('vkrTasks'),
+            vkrGroup: document.getElementById('vkrGroup'),
+            wordCount: document.getElementById('wordCount'),
+            wordCountValue: document.getElementById('wordCountValue'),
+            saveFilename: document.getElementById('saveFilename'),
+            
+            // Переключатель модели
+            modelSwitch: document.getElementById('modelSwitch'),
+            
+            // Области отображения
+            editorView: document.getElementById('editorView'),
+            previewView: document.getElementById('previewView'),
+            textEditor: document.getElementById('textEditor'),
+            previewContent: document.getElementById('previewContent'),
+            aiContent: document.getElementById('aiContent'),
+            
+            // Статус бар
+            statusBar: document.getElementById('statusBar'),
+            statusLogs: document.getElementById('statusLogs'),
+            currentModel: document.getElementById('currentModel'),
+            
+            // Модальные окна
+            saveModal: document.getElementById('saveModal')
+        };
+
+        // Переменные состояния
+        let state = {
+            isGenerating: false,
+            viewMode: 'preview', // 'edit' или 'preview'
+            outputContent: '',
+            currentStep: 0,
+            saveType: '', // 'docx', 'pdf', 'png'
+            modelType: 'pro' // 'flash' или 'pro'
+        };
+
+        // Инициализация приложения
+        function initApp() {
+            // Загрузка сохраненных данных
+            loadSavedData();
+            
+            // Настройка слушателей событий
+            setupEventListeners();
+            
+            // Инициализация MathJax
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+            
+            console.log('Генератор ВКР инициализирован');
+        }
+
+        // Загрузка сохраненных данных из localStorage
+        function loadSavedData() {
+            try {
+                const saved = localStorage.getItem('sch25_v25_config');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    
+                    if (data.subject) elements.subject.value = data.subject;
+                    if (data.grade) elements.grade.value = data.grade;
+                    if (data.topic) elements.topic.value = data.topic;
+                    if (data.studentName) elements.studentName.value = data.studentName;
+                    if (data.vkrGoal) elements.vkrGoal.value = data.vkrGoal;
+                    if (data.vkrTasks) elements.vkrTasks.value = data.vkrTasks;
+                    if (data.vkrGroup) elements.vkrGroup.value = data.vkrGroup;
+                    if (data.wordCount) {
+                        elements.wordCount.value = data.wordCount;
+                        elements.wordCountValue.textContent = parseInt(data.wordCount).toLocaleString();
+                    }
+                    if (data.modelType) {
+                        state.modelType = data.modelType;
+                        updateModelSwitch();
+                    }
+                    
+                    console.log('Данные загружены из localStorage');
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки данных:', error);
+            }
+        }
+
+        // Сохранение данных в localStorage
+        function saveData() {
+            const data = {
+                subject: elements.subject.value,
+                grade: elements.grade.value,
+                topic: elements.topic.value,
+                studentName: elements.studentName.value,
+                vkrGoal: elements.vkrGoal.value,
+                vkrTasks: elements.vkrTasks.value,
+                vkrGroup: elements.vkrGroup.value,
+                wordCount: elements.wordCount.value,
+                modelType: state.modelType,
+                timestamp: new Date().toISOString()
+            };
+            
+            localStorage.setItem('sch25_v25_config', JSON.stringify(data));
+            console.log('Данные сохранены в localStorage');
+        }
+
+        // Настройка слушателей событий
+        function setupEventListeners() {
+            // Основная кнопка генерации
+            elements.btnGenerate.addEventListener('click', startVKRGeneration);
+            
+            // Переключатель вида
+            elements.btnEdit.addEventListener('click', () => switchViewMode('edit'));
+            elements.btnPreview.addEventListener('click', () => switchViewMode('preview'));
+            
+            // Кнопки экспорта
+            elements.btnCopy.addEventListener('click', copyToClipboard);
+            elements.btnWord.addEventListener('click', () => openSaveModal('docx'));
+            elements.btnPDF.addEventListener('click', () => openSaveModal('pdf'));
+            elements.btnPNG.addEventListener('click', () => openSaveModal('png'));
+            
+            // Кнопки модального окна сохранения
+            elements.btnCancelSave.addEventListener('click', closeSaveModal);
+            elements.btnConfirmSave.addEventListener('click', handleSave);
+            
+            // Переключатель модели
+            elements.modelSwitch.addEventListener('click', toggleModel);
+            
+            // Поле объема слов
+            elements.wordCount.addEventListener('input', function() {
+                elements.wordCountValue.textContent = parseInt(this.value).toLocaleString();
+                saveData();
+            });
+            
+            // Автосохранение при изменении полей
+            ['subject', 'grade', 'topic', 'studentName', 'vkrGoal', 'vkrTasks', 'vkrGroup'].forEach(field => {
+                elements[field].addEventListener('change', saveData);
+                elements[field].addEventListener('blur', saveData);
+            });
+            
+            // Кнопка списка тем
+            elements.btnTopics.addEventListener('click', showTopicsModal);
+            
+            // Обновление предпросмотра титульного листа
+            elements.topic.addEventListener('input', updatePreviewTitle);
+            elements.studentName.addEventListener('input', updatePreviewTitle);
+            elements.vkrGroup.addEventListener('input', updatePreviewTitle);
+        }
+
+        // Обновление переключателя модели
+        function updateModelSwitch() {
+            const slider = elements.modelSwitch.querySelector('.slider');
+            if (state.modelType === 'pro') {
+                slider.style.transform = 'translateX(100%)';
+                elements.currentModel.textContent = 'Gemini 3.0 Pro Thinking';
+                config.currentModel = 'gemini-1.5-pro';
+            } else {
+                slider.style.transform = 'translateX(0)';
+                elements.currentModel.textContent = 'Gemini 3.0 Flash';
+                config.currentModel = 'gemini-1.5-flash';
+            }
+        }
+
+        // Переключение модели
+        function toggleModel() {
+            state.modelType = state.modelType === 'flash' ? 'pro' : 'flash';
+            updateModelSwitch();
+            saveData();
+            
+            // Показываем уведомление
+            showNotification(`Модель изменена на: ${state.modelType === 'pro' ? 'Pro (Глубокая проработка)' : 'Flash (Быстрая генерация)'}`);
+        }
+
+        // Переключение режима просмотра
+        function switchViewMode(mode) {
+            state.viewMode = mode;
+            
+            if (mode === 'edit') {
+                elements.editorView.classList.remove('hidden');
+                elements.previewView.classList.add('hidden');
+                elements.btnEdit.classList.add('bg-amber-600', 'text-white');
+                elements.btnPreview.classList.remove('bg-amber-600', 'text-white');
+                elements.btnPreview.classList.add('bg-gray-100', 'hover:bg-gray-200');
+                
+                // Заполняем редактор текущим контентом
+                elements.textEditor.value = state.outputContent || getCurrentContent();
+            } else {
+                elements.editorView.classList.add('hidden');
+                elements.previewView.classList.remove('hidden');
+                elements.btnPreview.classList.add('bg-amber-600', 'text-white');
+                elements.btnEdit.classList.remove('bg-amber-600', 'text-white');
+                elements.btnEdit.classList.add('bg-gray-100', 'hover:bg-gray-200');
+                
+                // Обновляем предпросмотр
+                updatePreview();
+            }
+        }
+
+        // Обновление предпросмотра титульного листа
+        function updatePreviewTitle() {
+            const titleElement = elements.previewContent.querySelector('.text-xl.italic');
+            if (titleElement && elements.topic.value) {
+                titleElement.textContent = `"${elements.topic.value}"`;
+            }
+            
+            const studentElement = elements.previewContent.querySelector('.text-right p:nth-child(1)');
+            if (studentElement && elements.studentName.value) {
+                studentElement.innerHTML = `Выполнил: <span class="font-bold">${elements.studentName.value}</span>`;
+            }
+            
+            const groupElement = elements.previewContent.querySelector('.text-right p:nth-child(2)');
+            if (groupElement && elements.vkrGroup.value) {
+                groupElement.innerHTML = `Группа: <span class="font-bold">${elements.vkrGroup.value}</span>`;
+            }
+        }
+
+        // Начало процесса генерации ВКР
+        async function startVKRGeneration() {
+            if (state.isGenerating) return;
+            
+            // Проверка обязательных полей
+            if (!elements.topic.value.trim()) {
+                showNotification('Введите тему работы!', 'error');
+                return;
+            }
+            
+            state.isGenerating = true;
+            state.outputContent = '';
+            state.currentStep = 0;
+            
+            // Показываем статус бар
+            elements.statusBar.classList.remove('hidden');
+            elements.statusLogs.innerHTML = '> Инициализация модуля ВКР...';
+            
+            // Блокируем кнопку
+            elements.btnGenerate.disabled = true;
+            elements.btnGenerate.innerHTML = '<i class="fas fa-spinner fa-spin mr-3"></i> ГЕНЕРАЦИЯ...';
+            
+            try {
+                // Этап 1: Планирование (Planning Phase)
+                await generateProjectPlan();
+                
+                // Этап 2: Итеративный синтез частей
+                await generateWorkSections();
+                
+                // Этап 3: Финальная сборка
+                await finalizeDocument();
+                
+                showNotification('ВКР успешно сгенерирована!', 'success');
+            } catch (error) {
+                console.error('Ошибка генерации:', error);
+                showNotification(`Ошибка: ${error.message}`, 'error');
+                
+                elements.statusLogs.innerHTML += `\n> Ошибка: ${error.message}`;
+            } finally {
+                // Разблокируем кнопку
+                state.isGenerating = false;
+                elements.btnGenerate.disabled = false;
+                elements.btnGenerate.innerHTML = '<i class="fas fa-bolt mr-3 animate-pulse"></i> СФОРМИРОВАТЬ ВКР';
+            }
+        }
+
+        // Этап 1: Генерация плана проекта
+        async function generateProjectPlan() {
+            addStatusLog('> Анализ темы и создание научного паспорта...');
+            
+            // Формируем промпт для планирования
+            const prompt = createPlanningPrompt();
+            
+            // Имитация запроса к AI (в реальном приложении здесь будет fetch к API)
+            await simulateAIRequest(prompt, 2000);
+            
+            // Генерируем примерный план (в реальном приложении это будет ответ от AI)
+            const plan = generateMockPlan();
+            
+            // Добавляем план в контент
+            state.outputContent += plan;
+            
+            addStatusLog('✓ Научный паспорт и план созданы');
+        }
+
+        // Этап 2: Генерация разделов работы
+        async function generateWorkSections() {
+            for (const section of config.diplomaSections.chapters) {
+                state.currentStep++;
+                const progress = Math.round((state.currentStep / config.diplomaSections.chapters.length) * 100);
+                
+                addStatusLog(`> Генерация раздела: "${section.title}" (${progress}%)...`);
+                
+                // Формируем промпт для раздела
+                const prompt = createSectionPrompt(section);
+                
+                // Имитация запроса к AI
+                await simulateAIRequest(prompt, section.title === 'Теоретическая часть' ? 3000 : 2000);
+                
+                // Генерируем примерный текст раздела
+                const sectionContent = generateMockSection(section);
+                
+                // Добавляем раздел в контент
+                state.outputContent += sectionContent;
+                
+                addStatusLog(`✓ Раздел "${section.title}" сгенерирован`);
+                
+                // Обновляем предпросмотр по мере генерации
+                updatePreview();
+            }
+        }
+
+        // Этап 3: Финальная сборка документа
+        async function finalizeDocument() {
+            addStatusLog('> Финальная сборка и форматирование...');
+            
+            // Добавляем библиографию
+            const bibliography = generateBibliography();
+            state.outputContent += bibliography;
+            
+            // Обновляем предпросмотр
+            updatePreview();
+            
+            // Сохраняем в редактор
+            elements.textEditor.value = state.outputContent;
+            
+            // Показываем уведомление о завершении
+            addStatusLog('✓ ВКР готова! Можно экспортировать в Word/PDF');
+            
+            // Скрываем статус бар через 3 секунды
+            setTimeout(() => {
+                elements.statusBar.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Создание промпта для планирования
+        function createPlanningPrompt() {
+            return `Ты — Председатель Государственной Экзаменационной Комиссии. Спроектируй идеальную структуру ВКР на тему: "${elements.topic.value}"
+
+Цель работы: ${elements.vkrGoal.value}
+
+Задачи:
+${elements.vkrTasks.value}
+
+Методические требования:
+${config.guidelines.fgos}
+${config.guidelines.gost}
+${config.guidelines.structure}
+
+Создай:
+1. Научный паспорт (Объект, Предмет, Цель, Задачи, Гипотеза)
+2. Подробный план-проспект с названиями глав и параграфов
+3. Обоснование актуальности и научной новизны
+
+Используй строгий академический стиль.`;
+        }
+
+        // Создание промпта для раздела
+        function createSectionPrompt(section) {
+            return `Ты — академический AI-писатель. Напиши раздел "${section.title}" для ВКР на тему "${elements.topic.value}".
+
+Объем: ${section.wordCount} слов.
+
+Требования:
+1. Используй строгий научный стиль
+2. Вставь 1-2 таблицы в формате Markdown (СТРОГО ПЕРЕД таблицей напиши "Таблица [N] – [Название]")
+3. Используй теги [[FIGURE_PLACEHOLDER: описание]] для графиков
+4. Ссылайся на источники в формате [1, с. 50]
+
+Текущая цель работы: ${elements.vkrGoal.value}
+
+Пиши глубоко и содержательно.`;
+        }
+
+        // Генерация мок-плана (для демонстрации)
+        function generateMockPlan() {
+            return `
+НАУЧНЫЙ ПАСПОРТ ВЫПУСКНОЙ КВАЛИФИКАЦИОННОЙ РАБОТЫ
+
+Тема: "${elements.topic.value}"
+
+1. ОБЪЕКТ ИССЛЕДОВАНИЯ: Процесс внедрения искусственного интеллекта в образовательную среду современной школы.
+
+2. ПРЕДМЕТ ИССЛЕДОВАНИЯ: Методики и технологии использования AI-инструментов для персонализации обучения учащихся ${elements.grade.value} класса.
+
+3. ЦЕЛЬ РАБОТЫ: ${elements.vkrGoal.value}
+
+4. ЗАДАЧИ ИССЛЕДОВАНИЯ:
+${elements.vkrTasks.value.split('\n').map((task, i) => `   ${i+1}. ${task}`).join('\n')}
+
+5. ГИПОТЕЗА ИССЛЕДОВАНИЯ: Системное внедрение AI-технологий в образовательный процесс позволит повысить уровень персонализации обучения на 40-60% и улучшить академические показатели учащихся.
+
+6. НАУЧНАЯ НОВИЗНА: Впервые предложена интеграционная модель AI-платформ с существующей ИКТ-инфраструктурой школы, адаптированная под требования ФГОС.
+
+7. ПРАКТИЧЕСКАЯ ЗНАЧИМОСТЬ: Разработанные методические рекомендации могут быть внедрены в образовательный процесс Школы №25 и других образовательных учреждений.
+
+СТРУКТУРА РАБОТЫ:
+========================
+ВВЕДЕНИЕ (15% объема)
+========================
+ГЛАВА 1. ТЕОРЕТИЧЕСКИЕ ОСНОВЫ ИСПОЛЬЗОВАНИЯ ИИ В ОБРАЗОВАНИИ
+  1.1. Эволюция AI-технологий в образовании
+  1.2. Классификация образовательных AI-платформ
+  1.3. Нормативно-правовая база применения ИИ
+
+========================
+ГЛАВА 2. ПРАКТИЧЕСКАЯ РЕАЛИЗАЦИЯ AI-МОДЕЛИ ПЕРСОНАЛИЗИРОВАННОГО ОБУЧЕНИЯ
+  2.1. Разработка архитектуры системы
+  2.2. Апробация на учебном материале
+  2.3. Анализ эффективности
+
+========================
+ЗАКЛЮЧЕНИЕ (10% объема)
+========================
+СПИСОК ИСПОЛЬЗОВАННЫХ ИСТОЧНИКОВ
+========================
+ПРИЛОЖЕНИЯ
+`;
+        }
+
+        // Генерация мок-раздела (для демонстрации)
+        function generateMockSection(section) {
+            if (section.title === 'Введение') {
+                return `
+
+${'='.repeat(60)}
+ВВЕДЕНИЕ
+${'='.repeat(60)}
+
+Актуальность исследования обусловлена стремительным развитием цифровых технологий и их проникновением во все сферы человеческой деятельности, включая образование. В условиях четвертой промышленной революции традиционные методы обучения требуют модернизации с учетом индивидуальных особенностей каждого учащегося. 
+
+Современные исследования (Босова, 2023; Поляков, 2024) показывают, что персонализированное обучение с использованием искусственного интеллекта позволяет повысить эффективность усвоения материала на 30-50% по сравнению со стандартными подходами.
+
+Таблица 1 – Сравнительный анализ AI-платформ для образования
+| Платформа | Тип | Целевая аудитория | Стоимость |
+|-----------|-----|-------------------|-----------|
+| ChatGPT Edu | Чат-бот | Университеты | $$$ |
+| Khanmigo | Адаптивная | Школы | $$ |
+| Cognii | Обратная связь | Вузы | $$$$ |
+| Century Tech | Персонализация | Школы/Колледжи | $$ |
+
+[[FIGURE_PLACEHOLDER: Динамика внедрения AI в образование за 2020-2024 гг.]]
+
+Основная проблема, решаемая в данной работе, заключается в отсутствии методически обоснованных подходов к интеграции AI-технологий в существующую образовательную инфраструктуру общеобразовательных школ России.
+
+`;
+            } else if (section.title === 'Теоретическая часть') {
+                return `
+
+${'='.repeat(60)}
+ГЛАВА 1. ТЕОРЕТИЧЕСКИЕ ОСНОВЫ ИСПОЛЬЗОВАНИЯ ИИ В ОБРАЗОВАНИИ
+${'='.repeat(60)}
+
+1.1. ЭВОЛЮЦИЯ AI-ТЕХНОЛОГИЙ В ОБРАЗОВАТЕЛЬНОМ ПРОЦЕССЕ
+
+Исторически использование компьютерных технологий в образовании прошло несколько этапов: от программированного обучения (Скиннер, 1958) до современных адаптивных систем на основе машинного обучения [2, с. 45].
+
+Ключевыми вехами развития стали:
+1. 1970-е: появление интеллектуальных обучающих систем (ITS)
+2. 1990-е: развитие экспертных систем в образовании
+3. 2010-е: внедрение больших данных и learning analytics
+4. 2020-е: генеративный ИИ и персонализированные образовательные траектории
+
+Математическая модель адаптивного обучения может быть представлена как:
+
+\\( P(s_{t+1} | s_t, a_t) = \\sum_{o \\in O} P(s_{t+1} | s_t, a_t, o)P(o | s_t) \\)
+
+где \\( s_t \\) – состояние знания учащегося в момент времени \\( t \\), \\( a_t \\) – учебное действие, \\( o \\) – наблюдаемые параметры.
+
+`;
+            } else if (section.title === 'Практическая часть') {
+                return `
+
+${'='.repeat(60)}
+ГЛАВА 2. ПРАКТИЧЕСКАЯ РЕАЛИЗАЦИЯ AI-МОДЕЛИ
+${'='.repeat(60)}
+
+2.1. АРХИТЕКТУРА СИСТЕМЫ ПЕРСОНАЛИЗИРОВАННОГО ОБУЧЕНИЯ
+
+Разработанная система включает три основных модуля:
+1. Модуль диагностики начального уровня знаний
+2. Модуль адаптации контента
+3. Модуль анализа результатов и коррекции траектории
+
+Таблица 2 – Результаты апробации системы в Школе №25
+| Класс | Кол-во учащихся | Прирост успеваемости | Уровень удовлетворенности |
+|-------|----------------|----------------------|---------------------------|
+| 9-А   | 25             | +32%                 | 89%                       |
+| 10-Б  | 28             | +41%                 | 92%                       |
+| 11-А  | 24             | +38%                 | 91%                       |
+
+[[FIGURE_PLACEHOLDER: Архитектурная схема системы персонализированного обучения]]
+
+Эффективность системы оценивалась по формуле:
+
+\\( E = \\frac{\\sum_{i=1}^{n} (P_{post,i} - P_{pre,i})}{n \\cdot P_{max}} \\times 100\\% \\)
+
+где \\( P_{pre,i} \\) и \\( P_{post,i} \\) – результаты до и после внедрения для i-го учащегося, \\( P_{max} \\) – максимальный возможный балл.
+
+`;
+            } else if (section.title === 'Заключение') {
+                return `
+
+${'='.repeat(60)}
+ЗАКЛЮЧЕНИЕ
+${'='.repeat(60)}
+
+В результате проведенного исследования была разработана и апробирована модель использования искусственного интеллекта для персонализированного обучения в условиях общеобразовательной школы.
+
+Основные выводы:
+1. AI-технологии позволяют повысить эффективность обучения на 35-45%
+2. Наибольший эффект наблюдается при комбинировании AI с традиционными методами
+3. Ключевым фактором успеха является подготовка педагогических кадров
+
+Перспективы дальнейших исследований:
+• Разработка отечественной AI-платформы для школ
+• Создание методики оценки психолого-педагогических эффектов AI
+• Адаптация модели для инклюзивного образования
+
+`;
+            }
+            
+            return `\n\n${section.title}\n${'='.repeat(60)}\n\n`;
+        }
+
+        // Генерация библиографии
+        function generateBibliography() {
+            return `
+
+${'='.repeat(60)}
+СПИСОК ИСПОЛЬЗОВАННЫХ ИСТОЧНИКОВ
+${'='.repeat(60)}
+
+1. Босова Л.Л. Информатика. 11 класс: учебник / Л.Л. Босова, А.Ю. Босова. – М.: БИНОМ, 2023. – 240 с.
+
+2. Поляков К.Ю. Программирование на Python: учебное пособие / К.Ю. Поляков. – СПб.: Питер, 2024. – 320 с.
+
+3. Федеральный государственный образовательный стандарт среднего общего образования. Утвержден приказом Минобрнауки России от 17.05.2012 № 413.
+
+4. Luckin R. Intelligence Unleashed: An argument for AI in Education / R. Luckin, W. Holmes. – London: Pearson, 2023. – 156 p.
+
+5. Baker R.S. Educational Data Mining and Learning Analytics / R.S. Baker, P.S. Inventado // Learning Analytics. – 2024. – Vol. 12, № 2. – P. 45-78.
+
+6. ГОСТ Р 7.0.100-2018. Библиографическая запись. Библиографическое описание. Общие требования и правила составления. – М.: Стандартинформ, 2018. – 45 с.
+
+7. Holmes W. Ethics of AI in Education: Towards a Community-Wide Framework / W. Holmes, I. Porayska-Pomsta // International Journal of Artificial Intelligence in Education. – 2022. – Vol. 32, № 3. – P. 504-526.
+
+8. Шендерецкая В.П. Цифровая трансформация образования: вызовы и возможности / В.П. Шендерецкая // Педагогика. – 2023. – № 5. – С. 12-19.
+
+Общее количество источников: 8
+`;
+        }
+
+        // Имитация запроса к AI
+        function simulateAIRequest(prompt, delay) {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    // В реальном приложении здесь будет fetch к Gemini API
+                    resolve();
+                }, delay);
+            });
+        }
+
+        // Добавление записи в лог статуса
+        function addStatusLog(message) {
+            const logEntry = document.createElement('div');
+            logEntry.textContent = message;
+            elements.statusLogs.appendChild(logEntry);
+            elements.statusLogs.scrollTop = elements.statusLogs.scrollHeight;
+        }
+
+        // Обновление предпросмотра
+        function updatePreview() {
+            if (state.outputContent) {
+                // Форматируем контент для предпросмотра
+                let formattedContent = state.outputContent
+                    .replace(/\n/g, '<br>')
+                    .replace(/={60}/g, '<hr class="my-4 border-amber-600">')
+                    .replace(/^(ГЛАВА \d+|ВВЕДЕНИЕ|ЗАКЛЮЧЕНИЕ)/gm, '<h2 class="text-center font-bold uppercase my-4">$1</h2>')
+                    .replace(/\n\d+\.\d+\.\s+(.+)/g, '<h3 class="font-bold mt-4 mb-2">$1</h3>')
+                    .replace(/\|(.+)\|/g, (match) => {
+                        // Обработка таблиц в Markdown
+                        const rows = match.split('\n').filter(r => r.includes('|'));
+                        if (rows.length > 1) {
+                            let html = '<div class="my-4 overflow-x-auto"><table class="min-w-full border border-gray-300"><tbody>';
+                            rows.forEach((row, i) => {
+                                const cells = row.split('|').filter(c => c.trim() !== '');
+                                html += '<tr>';
+                                cells.forEach(cell => {
+                                    if (i === 0) {
+                                        html += `<th class="border border-gray-300 px-4 py-2 bg-amber-50">${cell.trim()}</th>`;
+                                    } else {
+                                        html += `<td class="border border-gray-300 px-4 py-2">${cell.trim()}</td>`;
+                                    }
+                                });
+                                html += '</tr>';
+                            });
+                            html += '</tbody></table></div>';
+                            return html;
+                        }
+                        return match;
+                    })
+                    .replace(/\[\[FIGURE_PLACEHOLDER:(.+?)\]\]/g, '<div class="my-6 p-4 border-2 border-dashed border-amber-300 rounded-lg bg-amber-50 text-center"><i class="fas fa-microscope text-amber-500 text-2xl mb-2"></i><div class="text-amber-700 font-medium">МЕСТО ДЛЯ РИСУНКА: $1</div></div>')
+                    .replace(/Таблица (\d+) – (.+?)(?=<br>|$)/g, '<div class="my-3 font-bold text-amber-700">Таблица $1 – $2</div>');
+
+                elements.aiContent.innerHTML = formattedContent;
+                
+                // Обновляем MathJax
+                if (window.MathJax) {
+                    MathJax.typesetPromise([elements.aiContent]);
+                }
+            }
+        }
+
+        // Получение текущего контента
+        function getCurrentContent() {
+            if (state.viewMode === 'edit') {
+                return elements.textEditor.value;
+            }
+            return state.outputContent;
+        }
+
+        // Копирование в буфер обмена
+        async function copyToClipboard() {
+            try {
+                const content = getCurrentContent();
+                await navigator.clipboard.writeText(content);
+                showNotification('Текст скопирован в буфер обмена!', 'success');
+            } catch (error) {
+                showNotification('Ошибка копирования', 'error');
+            }
+        }
+
+        // Открытие модального окна сохранения
+        function openSaveModal(type) {
+            state.saveType = type;
+            
+            // Генерируем имя файла по умолчанию
+            const safeTopic = elements.topic.value
+                .replace(/[^\w\s]/gi, '')
+                .replace(/\s+/g, '_')
+                .substring(0, 50);
+            
+            const ext = type === 'docx' ? '.docx' : type === 'pdf' ? '.pdf' : '.png';
+            elements.saveFilename.value = `ВКР_${safeTopic}_${elements.vkrGroup.value || '11-А'}${ext}`;
+            
+            elements.saveModal.classList.remove('hidden');
+        }
+
+        // Закрытие модального окна сохранения
+        function closeSaveModal() {
+            elements.saveModal.classList.add('hidden');
+        }
+
+        // Обработка сохранения
+        async function handleSave() {
+            const filename = elements.saveFilename.value;
+            
+            try {
+                switch (state.saveType) {
+                    case 'docx':
+                        await saveAsDOCX(filename);
+                        break;
+                    case 'pdf':
+                        await saveAsPDF(filename);
+                        break;
+                    case 'png':
+                        await saveAsPNG(filename);
+                        break;
+                }
+                
+                showNotification(`Файл "${filename}" сохранен!`, 'success');
+                closeSaveModal();
+            } catch (error) {
+                showNotification(`Ошибка сохранения: ${error.message}`, 'error');
+            }
+        }
+
+        // Сохранение как DOCX
+        async function saveAsDOCX(filename) {
+            // Создаем простой документ (упрощенная версия)
+            const content = getCurrentContent();
+            
+            // Разделяем на параграфы
+            const paragraphs = content.split('\n').filter(p => p.trim());
+            
+            // Создаем новый документ
+            const doc = new docx.Document({
+                sections: [{
+                    properties: {},
+                    children: [
+                        // Титульный лист
+                        new docx.Paragraph({
+                            children: [
+                                new docx.TextRun({
+                                    text: "ВЫПУСКНАЯ КВАЛИФИКАЦИОННАЯ РАБОТА",
+                                    bold: true,
+                                    size: 36,
+                                })
+                            ],
+                            alignment: docx.AlignmentType.CENTER,
+                            spacing: { after: 400 }
+                        }),
+                        
+                        new docx.Paragraph({
+                            children: [
+                                new docx.TextRun({
+                                    text: `по теме: "${elements.topic.value}"`,
+                                    italics: true,
+                                    size: 28,
+                                })
+                            ],
+                            alignment: docx.AlignmentType.CENTER,
+                            spacing: { after: 800 }
+                        }),
+                        
+                        new docx.Paragraph({
+                            children: [
+                                new docx.TextRun({
+                                    text: `Выполнил: ${elements.studentName.value}`,
+                                    size: 24,
+                                })
+                            ],
+                            alignment: docx.AlignmentType.RIGHT,
+                        }),
+                        
+                        new docx.Paragraph({
+                            children: [
+                                new docx.TextRun({
+                                    text: `Группа: ${elements.vkrGroup.value || '11-А'}`,
+                                    size: 24,
+                                })
+                            ],
+                            alignment: docx.AlignmentType.RIGHT,
+                            spacing: { after: 1200 }
+                        }),
+                        
+                        // Основное содержание
+                        new docx.Paragraph({
+                            children: [
+                                new docx.TextRun({
+                                    text: "СОДЕРЖАНИЕ",
+                                    bold: true,
+                                    size: 28,
+                                    allCaps: true,
+                                })
+                            ],
+                            alignment: docx.AlignmentType.CENTER,
+                            pageBreakBefore: true,
+                        }),
+                        
+                        // Добавляем параграфы из контента
+                        ...paragraphs.map(text => 
+                            new docx.Paragraph({
+                                text: text,
+                                alignment: docx.AlignmentType.JUSTIFIED,
+                                spacing: { line: 360 }, // Полуторный интервал
+                            })
+                        )
+                    ]
+                }]
+            });
+            
+            // Генерируем и скачиваем документ
+            const buffer = await docx.Packer.toBlob(doc);
+            const url = URL.createObjectURL(buffer);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Сохранение как PDF
+        async function saveAsPDF(filename) {
+            const element = document.getElementById('previewContent');
+            
+            // Создаем canvas из элемента
+            const canvas = await html2canvas(element, {
+                scale: 2, // Увеличиваем качество
+                useCORS: true,
+                logging: false
+            });
+            
+            // Создаем PDF
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const imgData = canvas.toDataURL('image/png');
+            const imgWidth = 210; // A4 ширина в мм
+            const pageHeight = 297; // A4 высота в мм
+            const imgHeight = canvas.height * imgWidth / canvas.width;
+            
+            pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+            pdf.save(filename);
+        }
+
+        // Сохранение как PNG
+        async function saveAsPNG(filename) {
+            const element = document.getElementById('previewContent');
+            
+            const canvas = await html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                logging: false
+            });
+            
+            // Создаем ссылку для скачивания
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // Показ уведомления
+        function showNotification(message, type = 'info') {
+            // Создаем элемент уведомления
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-100 text-green-800 border border-green-200' :
+                type === 'error' ? 'bg-red-100 text-red-800 border border-red-200' :
+                'bg-blue-100 text-blue-800 border border-blue-200'
+            }`;
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas ${
+                        type === 'success' ? 'fa-check-circle' :
+                        type === 'error' ? 'fa-exclamation-circle' :
+                        'fa-info-circle'
+                    } mr-2"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Удаляем уведомление через 3 секунды
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Показ модального окна с темами
+        function showTopicsModal() {
+            const topics = [
+                "Искусственный интеллект в образовании: современные тенденции",
+                "Разработка мобильного приложения для изучения английского языка",
+                "Влияние социальных сетей на успеваемость школьников",
+                "Анализ big data в образовательных процессах",
+                "Создание виртуальной лаборатории по физике",
+                "Экологические проблемы современного мегаполиса",
+                "Исторические параллели в литературе XX века",
+                "Математическое моделирование климатических изменений"
+            ];
+            
+            // Создаем модальное окно
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="glass-panel p-6 w-96 max-h-[80vh] overflow-y-auto">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold text-gray-800">Выбор темы</h3>
+                        <button class="p-2 rounded-lg hover:bg-gray-100" id="closeTopicsModal">
+                            <i class="fas fa-times text-gray-600"></i>
+                        </button>
+                    </div>
+                    <div class="space-y-2">
+                        ${topics.map((topic, i) => `
+                            <div class="p-3 rounded-lg border border-gray-200 hover:border-amber-300 cursor-pointer transition topic-item">
+                                ${i+1}. ${topic}
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="mt-4 text-sm text-gray-500">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Выберите тему или введите свою
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Обработчики событий
+            modal.querySelector('#closeTopicsModal').addEventListener('click', () => {
+                modal.remove();
+            });
+            
+            modal.querySelectorAll('.topic-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    elements.topic.value = item.textContent.replace(/^\d+\.\s*/, '');
+                    modal.remove();
+                    saveData();
+                });
+            });
+        }
+
+        // Запуск приложения
+        window.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
